@@ -1,12 +1,7 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsUrl } from 'class-validator';
+import { Prisma, UserRoles } from '@prisma/client';
+import { IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
 
-import { Roles, User } from '@/users/schemas/user.schema';
-
-export class CreateUserDto implements Omit<Pick<User, keyof User>, '_id'> {
-    @IsNotEmpty()
-    @IsEmail()
-    email: string;
-
+export class CreateUserDto implements Prisma.UserEntityCreateInput {
     @IsNotEmpty()
     username: string;
 
@@ -14,22 +9,13 @@ export class CreateUserDto implements Omit<Pick<User, keyof User>, '_id'> {
     password: string;
 
     @IsNotEmpty()
-    @IsUrl()
-    git: string;
-
-    @IsNotEmpty()
     name: string;
 
     @IsNotEmpty()
-    phone: string;
+    @IsEmail()
+    email: string;
 
     @IsNotEmpty()
-    @IsEnum(Roles, { each: true })
-    roles: Roles[];
-
-    @IsNotEmpty()
-    telegram: string;
-
-    @IsNotEmpty()
-    urlPrefixes: string[];
+    @IsEnum(UserRoles, { each: true })
+    roles: UserRoles[];
 }

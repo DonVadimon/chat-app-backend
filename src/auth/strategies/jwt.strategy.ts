@@ -8,12 +8,12 @@ import { UsersService } from '@/users/users.service';
 
 export type ValidationPayload = {
     username: string;
-    _id: string;
+    id: number;
 };
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(private readonly userService: UsersService, private readonly configService: ConfigService) {
+    constructor(private readonly usersService: UsersService, private readonly configService: ConfigService) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
                 (request: Request) => request?.cookies?.[this.configService.get('AUTH_COOKIE_NAME')],
@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: ValidationPayload) {
-        return await this.userService.getById(payload._id);
+        return await this.usersService.getById(payload.id);
     }
 }

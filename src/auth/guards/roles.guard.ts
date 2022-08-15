@@ -1,11 +1,11 @@
 import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
+import { UserRoles } from '@prisma/client';
 
-import { Roles } from '@/users/schemas/user.schema';
 import { UserReq } from '@/users/users.types';
 
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-export const RolesGuard = (...requiredRoles: Roles[]): Type<CanActivate> => {
+export const RolesGuard = (...requiredRoles: UserRoles[]): Type<CanActivate> => {
     class RoleGuardMixin extends JwtAuthGuard {
         async canActivate(context: ExecutionContext) {
             await super.canActivate(context);

@@ -1,33 +1,18 @@
-import { ArrayUnique, IsArray, IsEmail, IsEnum, IsOptional, IsUrl } from 'class-validator';
+import { Prisma, UserRoles } from '@prisma/client';
+import { ArrayUnique, IsArray, IsEmail, IsEnum, IsOptional } from 'class-validator';
 
-import { Roles } from '@/users/schemas/user.schema';
-
-import { CreateUserDto } from './create-user.dto';
-
-export type UpdateUserDtoFields = Partial<Omit<CreateUserDto, 'password'>>;
-
-export class UpdateUserDto implements UpdateUserDtoFields {
+export class UpdateUserDto implements Prisma.UserEntityUpdateInput {
     username?: string;
-
-    @IsOptional()
-    @IsEmail()
-    email?: string;
-
-    @IsOptional()
-    @IsUrl()
-    git?: string;
-
-    name?: string;
-
-    phone?: string;
 
     @IsOptional()
     @IsArray()
     @ArrayUnique()
-    @IsEnum(Roles, { each: true })
-    roles?: Roles[];
+    @IsEnum(UserRoles, { each: true })
+    roles?: UserRoles[];
 
-    telegram?: string;
+    name?: string;
 
-    urlPrefixes?: string[];
+    @IsOptional()
+    @IsEmail()
+    email?: string;
 }

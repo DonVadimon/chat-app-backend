@@ -1,0 +1,22 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// ? USERS
+
+model UserEntity {
+    id       Int         @id @default(autoincrement())
+    username String      @unique
+    password String
+    name     String
+    email    String      @unique
+    roles    UserRoles[]
+}
+
+// ? ROLES
+
+enum UserRoles {
+    ADMIN
+    REGULAR
+}

@@ -5,16 +5,16 @@ services:
     environment:
       - DB_PATH=${DB_PATH}
     volumes:
-      - ${DB_PATH}:/data/db
+      - ${DB_PATH}:/var/lib/postgresql/data
     ports:
-      - '27020-27023:27020-27023'
+      - 5432:5432
 
   app:
-    container_name: auth-nest-app_dev
+    container_name: chat-app-app_dev
     environment:
       - NODE_ENV=development
-      - DB_URL=mongodb://${DB_USER}:${DB_PWD}@auth-nest-db:27020/${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PWD}@chat-app-db:5432/${DB_NAME}
     volumes:
       - .:/usr/app
       - /usr/app/node_modules
-    command: npm run start:dev
+    command: sh ./wait-for-postgres.sh "npm run start:migrate:dev"
