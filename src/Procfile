@@ -1,2 +1,2 @@
-release: npx prisma migrate deploy && npm run seed
+release: exit 1
 web: npm run start:prod
