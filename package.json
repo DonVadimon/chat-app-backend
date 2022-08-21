@@ -15,7 +15,7 @@
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
         "start:migrate:prod": "prisma migrate deploy && npm run start:prod",
-        "start:heroku": "prisma migrate deploy && npm run prisma:seed && npm run start:prod",
+        "seed": "ts-node prisma/seed.ts",
         "prisma:migrate:dev": "npm run prisma:gen:schema && prisma migrate dev",
         "prisma:gen:client": "npm run prisma:gen:schema && prisma generate",
         "prisma:gen:schema": "ts-node ./scripts/generateSchema.ts",
@@ -99,6 +99,6 @@
         "testEnvironment": "node"
     },
     "prisma": {
-        "seed": "ts-node prisma/seed.ts"
+        "seed": "npm run seed"
     }
 }
