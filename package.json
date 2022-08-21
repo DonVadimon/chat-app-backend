@@ -20,6 +20,7 @@
         "prisma:gen:client": "npm run prisma:gen:schema && prisma generate",
         "prisma:gen:schema": "ts-node ./scripts/generateSchema.ts",
         "prisma:seed": "prisma migrate reset",
+        "prisma:seed:force": "prisma migrate reset --force",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
         "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
         "test": "jest",
