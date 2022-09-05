@@ -17,4 +17,4 @@ services:
     volumes:
       - .:/usr/app
       - /usr/app/node_modules
-    command: sh ./wait-for-postgres.sh "npm run start:migrate:dev"
+    command: bash -c 'sh ./wait-for-postgres.sh npx prisma migrate deploy && npm run prisma:seed:force && npm run start:dev'

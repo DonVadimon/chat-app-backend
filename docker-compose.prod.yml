@@ -11,4 +11,4 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PWD}@localhost:5432/${DB_NAME}
-    command: npm run build && npm run start:prod
+    command: bash -c 'sh ./wait-for-postgres.sh npm run build && npx prisma migrate deploy && npm run prisma:seed:force && npm run start:prod'
