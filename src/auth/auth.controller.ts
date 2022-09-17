@@ -1,17 +1,23 @@
 import { Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
+import { ApiUserEntityResponse } from '@/users/users.swagger';
 import { UserReq } from '@/users/users.types';
 
+import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService, private readonly configService: ConfigService) {}
 
+    @ApiBody({ type: LoginDto })
+    @ApiOkResponse({ type: ApiUserEntityResponse })
     @HttpCode(HttpStatus.OK)
     @UseGuards(LocalAuthGuard)
     @Post('login')
@@ -26,6 +32,7 @@ export class AuthController {
         return response.send(user);
     }
 
+    @ApiOkResponse({ type: ApiUserEntityResponse })
     @UseGuards(JwtAuthGuard)
     @Get()
     authenticate(@Req() request: UserReq) {
@@ -34,6 +41,7 @@ export class AuthController {
         return user;
     }
 
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     logout(@Req() request: UserReq, @Res() response: Response) {
