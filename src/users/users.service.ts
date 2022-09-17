@@ -27,10 +27,17 @@ export class UsersService {
         return user;
     }
 
-    async getById(id: number): Promise<UserEntity | undefined> {
+    async getById(id: number): Promise<Omit<UserEntity, 'password'> | undefined> {
         const user = await this.prisma.userEntity.findFirst({
             where: {
                 id,
+            },
+            select: {
+                email: true,
+                id: true,
+                name: true,
+                roles: true,
+                username: true,
             },
         });
         return user;
