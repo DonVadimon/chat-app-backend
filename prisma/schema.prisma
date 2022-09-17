@@ -10,12 +10,14 @@ datasource db {
 // ? USERS
 
 model UserEntity {
+    // ? required fields
     id       Int         @id @default(autoincrement())
     username String      @unique
     password String
     name     String
-    email    String      @unique
     roles    UserRoles[]
+    // ? optional fields
+    email    String?     @unique
 }
 
 // ? ROLES
