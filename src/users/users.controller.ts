@@ -17,7 +17,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @ApiOkResponse({ type: ApiCheckUsernameAvailableResponse })
-    @Post('/check-username')
+    @Post('check-username')
     async checkUsernameAvailable(@Body() dto: CheckUsernameAvailableDto) {
         const findedUser = await this.usersService.getByUsername(dto.username);
 
@@ -38,7 +38,7 @@ export class UsersController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Get('/self')
+    @Get('self')
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     getSelf(@Req() request: UserReq) {
         return this.usersService.getById(request.user.id);
@@ -52,9 +52,12 @@ export class UsersController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Patch('/self-update')
+    @Patch('self-update')
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     updateSelf(@Req() request: UserReq, @Body() dto: UpdateUserDto) {
+        // ? dont allow to change roles
+        dto.roles = undefined;
+
         return this.usersService.updateUser(request.user.id, dto);
     }
 

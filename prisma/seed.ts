@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, UserRoles } from '@prisma/client';
+import { ChatRoomType, Prisma, PrismaClient, UserRoles } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -20,6 +20,36 @@ const userData: Prisma.UserEntityCreateInput[] = [
     },
 ];
 
+const chatRoomsData: Prisma.ChatRoomEntityCreateInput[] = [
+    {
+        type: ChatRoomType.PRIVATE,
+        description: 'Mock chat room',
+        members: {
+            connect: [{ username: 'admin' }, { username: 'regular' }],
+        },
+        messages: {
+            create: [
+                {
+                    author: {
+                        connect: {
+                            username: 'admin',
+                        },
+                    },
+                    content: 'Hello from Admin',
+                },
+                {
+                    author: {
+                        connect: {
+                            username: 'regular',
+                        },
+                    },
+                    content: 'Hello from Regular',
+                },
+            ],
+        },
+    },
+];
+
 const createUser = async ({ password, ...rest }: Prisma.UserEntityCreateInput) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const dto: Prisma.UserEntityCreateInput = {
@@ -38,6 +68,10 @@ async function main() {
     for (const userDto of userData) {
         const createdUser = await createUser(userDto);
         console.log(`Created user ${createdUser.username} with id ${createdUser.id}`);
+    }
+    for (const roomDto of chatRoomsData) {
+        const createdRoom = await prisma.chatRoomEntity.create({ data: roomDto });
+        console.log();
     }
     console.log(`Seeding finished.`);
 }
