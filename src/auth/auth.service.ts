@@ -4,9 +4,8 @@ import { UserEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '@/users/users.service';
-import { UserInReq } from '@/users/users.types';
 
-import { ValidationPayload } from './strategies/jwt.strategy';
+import { UserInReq, ValidationPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -26,8 +25,12 @@ export class AuthService {
         }
     }
 
-    async generateJwtToken({ id: _id, username }: UserInReq) {
-        const payload: ValidationPayload = { username, id: _id };
+    async generateJwtToken({ id, username }: UserInReq) {
+        const payload: ValidationPayload = { username, id };
         return this.jwtService.sign(payload);
+    }
+
+    verifyJwtToken(jwtToken: string) {
+        return this.jwtService.verifyAsync<ValidationPayload>(jwtToken);
     }
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
 
+import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { UserReq } from '@/users/users.types';
 
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ChatService } from './chat.service';
@@ -12,12 +12,12 @@ export class ChatController {
     constructor(private readonly chatService: ChatService) {}
 
     @Get('self-rooms')
-    getSelfRooms(@Req() request: UserReq) {
+    getSelfRooms(@Req() request: RequestWithUser) {
         return this.chatService.getUserRooms(request.user.id);
     }
 
     @Get('room/:id')
-    async getRoomDetails(@Req() request: UserReq, @Param('id') roomIdParam: string) {
+    async getRoomDetails(@Req() request: RequestWithUser, @Param('id') roomIdParam: string) {
         const roomId = Number(roomIdParam);
         const isMemberOfRoom = await this.chatService.isMemberOfRoom(request.user.id, roomId);
         if (isMemberOfRoom) {

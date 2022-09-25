@@ -1,7 +1,9 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 
+import { SocketWithUser } from '@/auth/auth.types';
+import { WsJwtAuthGuard } from '@/auth/guards/ws-jwt-auth.guard';
 import { CORS_ORIGINS } from '@/constants';
 
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
@@ -15,6 +17,7 @@ import { ChatIncomingEvents, ChatOutgoingEvents } from './chat.types';
         origin: CORS_ORIGINS,
     },
 })
+@UseGuards(WsJwtAuthGuard)
 export class ChatGateway implements OnGatewayInit {
     constructor(private readonly chatService: ChatService) {}
 
@@ -27,7 +30,7 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     @SubscribeMessage(ChatIncomingEvents.SEND_MESSAGE_TO_SERVER)
-    async handleMessage(client: Socket, dto: CreateChatMessageDto) {
+    async handleMessage(client: SocketWithUser, dto: CreateChatMessageDto) {
         const message = await this.chatService.createMessage(dto);
         this.wss
             .to(this.chatService.createRoomWsId(dto.roomId))
@@ -35,14 +38,14 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     @SubscribeMessage(ChatIncomingEvents.CLIENT_JOIN_ROOM)
-    async handleRoomJoin(client: Socket, dto: JoinLeaveChatRoomDto) {
+    async handleRoomJoin(client: SocketWithUser, dto: JoinLeaveChatRoomDto) {
         const room = await this.chatService.addMemberToRoom(dto);
         client.join(this.chatService.createRoomWsId(room.id));
         client.emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
     }
 
     @SubscribeMessage(ChatIncomingEvents.CLIENT_LEAVE_ROOM)
-    async handleRoomLeave(client: Socket, dto: JoinLeaveChatRoomDto) {
+    async handleRoomLeave(client: SocketWithUser, dto: JoinLeaveChatRoomDto) {
         const room = await this.chatService.removeMemberFromRoom(dto);
         client.leave(this.chatService.createRoomWsId(room.id));
         client.emit(ChatOutgoingEvents.CLIENT_LEAVED_ROOM, room);

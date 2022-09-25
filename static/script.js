@@ -91,5 +91,10 @@ var app = new Vue({
             userId: this.user.id,
             roomId: this.activeRoomId,
         });
+
+        this.socket.chat.on('exception', (error) => {
+            console.error(error);
+            alert(JSON.stringify(error));
+        });
     },
 });

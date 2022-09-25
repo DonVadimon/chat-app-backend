@@ -18,6 +18,7 @@
             </section>
             <section class="chat">
                 <h1>Websockets Tester</h1>
+                <h2>{{ user.username }}</h2>
                 <form>
                     <input v-model="text" type="text" />
                     <button type="submit" @click.prevent="sendChatMessage()">Send</button>
@@ -26,7 +27,7 @@
 
                 <div class="tab-row">Status: {{ isMemberOfActiveRoom ? 'Joined' : 'NOT Joined' }}</div>
                 <ul>
-                    <li v-for="msg in messages[activeRoomId]" :key="msg.content">
+                    <li v-for="msg in messages[activeRoomId]" :key="msg.id">
                         <strong>{{ msg.author.username }}:</strong> {{ msg.content }} at <i>{{ msg.createdAt }}</i>
                     </li>
                 </ul>
