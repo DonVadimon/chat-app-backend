@@ -1,15 +1,22 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { Socket } from 'socket.io';
 
 import { UsersService } from '@/users/users.service';
+import { parseCookieString } from '@/utils/parse-cookie-string';
 
 import { UserInReq, ValidationPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) {}
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
+    ) {}
 
     async validateUser(username: string, password: string): Promise<Omit<UserEntity, 'password'> | null> {
         try {
@@ -32,5 +39,13 @@ export class AuthService {
 
     verifyJwtToken(jwtToken: string) {
         return this.jwtService.verifyAsync<ValidationPayload>(jwtToken);
+    }
+
+    async extractUserFromWsClient(client: Socket) {
+        const jwtToken = parseCookieString(client.handshake.headers.cookie)[this.configService.get('AUTH_COOKIE_NAME')];
+        const userInfo = await this.verifyJwtToken(jwtToken);
+        const user = await this.usersService.getById(userInfo.id);
+        client.data.user = { ...user, password: undefined };
+        return user;
     }
 }

@@ -68,7 +68,7 @@ export class ChatService {
         });
     }
 
-    createRoom(dto: CreateChatRoomDto) {
+    createRoom(dto: CreateChatRoomDto, includeMembers = false) {
         return this.prisma.chatRoomEntity.create({
             data: {
                 type: dto.type,
@@ -77,6 +77,9 @@ export class ChatService {
                 members: {
                     connect: dto.members.map((id) => ({ id })),
                 },
+            },
+            include: {
+                members: includeMembers,
             },
         });
     }

@@ -13,7 +13,7 @@ export class CreateChatRoomDto implements Partial<Record<keyof Prisma.ChatRoomEn
     @ArrayMinSize(2)
     @ArrayUnique()
     @IsInt({ each: true })
-    members?: number[];
+    members: number[];
 
     @ApiProperty()
     name?: string;

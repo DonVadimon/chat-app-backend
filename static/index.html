@@ -13,9 +13,6 @@
     </head>
     <body>
         <main id="v-app">
-            <section class="alerts">
-                <alerts-component :items="alerts"></alerts-component>
-            </section>
             <section class="chat">
                 <h1>Websockets Tester</h1>
                 <h2>{{ user.username }}</h2>
@@ -23,15 +20,37 @@
                     <input v-model="text" type="text" />
                     <button type="submit" @click.prevent="sendChatMessage()">Send</button>
                 </form>
-                <!-- Tabs -->
 
-                <div class="tab-row">Status: {{ isMemberOfActiveRoom ? 'Joined' : 'NOT Joined' }}</div>
-                <ul>
-                    <li v-for="msg in messages[activeRoomId]" :key="msg.id">
-                        <strong>{{ msg.author.username }}:</strong> {{ msg.content }} at <i>{{ msg.createdAt }}</i>
-                    </li>
-                </ul>
-                <!-- /Tabs -->
+                <div class="messages">
+                    <div
+                        v-for="msg in activeMessages"
+                        :key="msg.id"
+                        class="message"
+                        :class="{ self: msg.author.username === user.username }"
+                    >
+                        <strong>{{ msg.author.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
+                    </div>
+                </div>
+            </section>
+            <section class="rooms">
+                <form class="new-room-form">
+                    <input v-model="newRoomName" type="text" placeholder="New Room Name" />
+                    <input v-model="newRoomDescription" type="text" placeholder="New Room Description" />
+                    <button type="submit" @click.prevent="createNewRoom()">Create New Room</button>
+                </form>
+                <div
+                    class="room-tab"
+                    :class="{ active: activeRoomId === room.id }"
+                    v-for="room in rooms"
+                    :key="room.id"
+                    @click="handleRoomChange(room.id)"
+                >
+                    <h5 v-if="!!room.name">{{ room.name }}</h5>
+                    <p>{{ room.description }}</p>
+                </div>
+            </section>
+            <section class="alerts">
+                <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
             </section>
         </main>
         <script src="./script.js"></script>
