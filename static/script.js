@@ -49,6 +49,7 @@ var app = new Vue({
             }
         },
         receiveChatMessage(message) {
+            this.messages[message.chatRoomEntityId] ??= [];
             this.messages[message.chatRoomEntityId].push(message);
         },
         handleRoomChange(roomId) {
