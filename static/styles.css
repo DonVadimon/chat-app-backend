@@ -1,0 +1,87 @@
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: 'chat rooms alerts';
+}
+
+section.chat {
+    grid-area: chat;
+}
+
+.messages {
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    width: 80%;
+    align-self: flex-start;
+    margin: 8px;
+    display: inline-flex;
+    flex-direction: column;
+    font-size: 1.6em;
+}
+
+.message.self {
+    align-self: flex-end;
+}
+
+.message strong {
+    font-size: 0.8em;
+}
+
+.message i {
+    font-size: 0.6em;
+}
+
+section.rooms {
+    grid-area: rooms;
+}
+
+.room-tab {
+    display: flex;
+    flex-direction: column;
+    color: rgb(3, 40, 40);
+    background: rgb(147, 208, 208);
+    padding: 12px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    cursor: pointer;
+}
+
+.room-tab:hover {
+    background: rgb(77, 155, 155);
+}
+
+.room-tab.active {
+    color: rgb(191, 214, 214);
+    background: teal;
+}
+
+.room-tab h5 {
+    margin: 0 0 8px;
+}
+
+.room-tab p {
+    margin: 0;
+}
+
+.new-room-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 24px 0;
+}
+
+section.alerts {
+    grid-area: alerts;
+}
+
+.tab-row {
+    padding-top: 20px;
+}
+
+.tab-btn.active {
+    background: blue;
+    color: white;
+}

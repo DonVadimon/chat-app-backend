@@ -4,7 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 
-import { AppModule } from './app.module';
+import { AppModule } from './app/app.module';
+import { CORS_ORIGINS } from './constants';
 
 dotenv.config();
 
@@ -14,12 +15,7 @@ async function bootstrap() {
     app.use(cookieParser());
     app.enableCors({
         credentials: true,
-        origin: [
-            'http://localhost:8100',
-            'https://chat-app-frontend-two.vercel.app',
-            'https://chat-app-frontend-git-master-antoffee.vercel.app',
-            'https://chat-app-frontend-antoffee.vercel.app',
-        ],
+        origin: CORS_ORIGINS,
     });
 
     const swaggerConfig = new DocumentBuilder()

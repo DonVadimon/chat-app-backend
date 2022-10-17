@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } fro
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserRoles } from '@prisma/client';
 
+import { RequestWithUser } from '@/auth/auth.types';
 import { RolesGuard } from '@/auth/guards/roles.guard';
 
 import { CheckUsernameAvailableDto } from './dto/check-username-available.dto';
@@ -9,7 +10,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { ApiCheckUsernameAvailableResponse, ApiUserEntityResponse } from './users.swagger';
-import { UserReq } from './users.types';
 
 @ApiTags('users')
 @Controller('users')
@@ -17,7 +17,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @ApiOkResponse({ type: ApiCheckUsernameAvailableResponse })
-    @Post('/check-username')
+    @Post('check-username')
     async checkUsernameAvailable(@Body() dto: CheckUsernameAvailableDto) {
         const findedUser = await this.usersService.getByUsername(dto.username);
 
@@ -38,9 +38,9 @@ export class UsersController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Get('/self')
+    @Get('self')
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
-    getSelf(@Req() request: UserReq) {
+    getSelf(@Req() request: RequestWithUser) {
         return this.usersService.getById(request.user.id);
     }
 
@@ -52,9 +52,12 @@ export class UsersController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Patch('/self-update')
+    @Patch('self-update')
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
-    updateSelf(@Req() request: UserReq, @Body() dto: UpdateUserDto) {
+    updateSelf(@Req() request: RequestWithUser, @Body() dto: UpdateUserDto) {
+        // ? dont allow to change roles
+        dto.roles = undefined;
+
         return this.usersService.updateUser(request.user.id, dto);
     }
 

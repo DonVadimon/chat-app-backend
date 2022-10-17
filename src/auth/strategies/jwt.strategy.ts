@@ -4,12 +4,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
+import { ValidationPayload } from '@/auth/auth.types';
 import { UsersService } from '@/users/users.service';
-
-export type ValidationPayload = {
-    username: string;
-    id: number;
-};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

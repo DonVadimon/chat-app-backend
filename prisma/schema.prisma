@@ -11,18 +11,51 @@ datasource db {
 
 model UserEntity {
     // ? required fields
-    id       Int         @id @default(autoincrement())
-    username String      @unique
+    id       Int                 @id @default(autoincrement())
+    username String              @unique
     password String
     name     String
     roles    UserRoles[]
+    rooms    ChatRoomEntity[]
+    messages ChatMessageEntity[]
     // ? optional fields
-    email    String?     @unique
+    email    String?             @unique
 }
-
-// ? ROLES
 
 enum UserRoles {
     ADMIN
     REGULAR
+}
+
+// ? CHAT ROOM
+
+model ChatRoomEntity {
+    id          Int                 @id @default(autoincrement())
+    type        ChatRoomType
+    members     UserEntity[]
+    messages    ChatMessageEntity[]
+    name        String?
+    description String?
+    // ? timestamps
+    createdAt   DateTime            @default(now())
+    updatedAt   DateTime            @updatedAt
+}
+
+enum ChatRoomType {
+    PRIVATE
+    GROUP
+}
+
+// ? CHAT MESSAGE
+
+model ChatMessageEntity {
+    id               Int            @id @default(autoincrement())
+    content          String
+    room             ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id])
+    chatRoomEntityId Int
+    author           UserEntity     @relation(fields: [userEntityId], references: [id])
+    userEntityId     Int
+    // ? timestamps
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
 }

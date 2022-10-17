@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Websockets Client</title>
+        <link href="/styles.css" rel="stylesheet" />
+        <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+        <main id="v-app">
+            <section class="chat">
+                <h1>Websockets Tester</h1>
+                <h2>{{ user.username }}</h2>
+                <form>
+                    <input v-model="text" type="text" />
+                    <button type="submit" @click.prevent="sendChatMessage()">Send</button>
+                </form>
+
+                <div class="messages">
+                    <div
+                        v-for="msg in activeMessages"
+                        :key="msg.id"
+                        class="message"
+                        :class="{ self: msg.author.username === user.username }"
+                    >
+                        <strong>{{ msg.author.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
+                    </div>
+                </div>
+            </section>
+            <section class="rooms">
+                <form class="new-room-form">
+                    <input v-model="newRoomName" type="text" placeholder="New Room Name" />
+                    <input v-model="newRoomDescription" type="text" placeholder="New Room Description" />
+                    <button type="submit" @click.prevent="createNewRoom()">Create New Room</button>
+                </form>
+                <div
+                    class="room-tab"
+                    :class="{ active: activeRoomId === room.id }"
+                    v-for="room in rooms"
+                    :key="room.id"
+                    @click="handleRoomChange(room.id)"
+                >
+                    <h5 v-if="!!room.name">{{ room.name }}</h5>
+                    <p>{{ room.description }}</p>
+                </div>
+            </section>
+            <section class="alerts">
+                <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
+            </section>
+        </main>
+        <script src="./script.js"></script>
+    </body>
+</html>
