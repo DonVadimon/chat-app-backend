@@ -17,6 +17,8 @@ const ChatRoomType = {
     GROUP: 'GROUP',
 };
 
+const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/${url}`;
+
 Vue.component('alerts-component', VueSimpleNotify.VueSimpleNotify);
 var app = new Vue({
     el: '#v-app',
@@ -103,7 +105,7 @@ var app = new Vue({
     },
     watch: {
         async activeRoomId(activeRoomId) {
-            const { id, messages } = await fetch(`http://localhost:3003/chat/room/${activeRoomId}`)
+            const { id, messages } = await fetch(createApiUrl(`chat/room/${activeRoomId}`))
                 .then((data) => data.json())
                 .catch(console.error);
             this.messages = Object.assign(this.messages, { [id]: messages });
@@ -113,7 +115,7 @@ var app = new Vue({
     async created() {
         const username = prompt('admin or regular');
 
-        this.user = await fetch('http://localhost:3003/auth/login', {
+        this.user = await fetch(createApiUrl('auth/login'), {
             method: 'POST',
             body: JSON.stringify({
                 username,
@@ -126,14 +128,14 @@ var app = new Vue({
             .then((data) => data.json())
             .catch(console.error);
 
-        this.rooms = await fetch('http://localhost:3003/chat/self-rooms')
+        this.rooms = await fetch(createApiUrl('chat/self-rooms'))
             .then((data) => data.json())
             .catch(console.error);
 
         this.activeRoomId = this.rooms[0]?.id;
 
         // ? sockets
-        this.socket.chat = io('http://localhost:3003/chat');
+        this.socket.chat = io('/chat');
 
         this.socket.chat.on(TO_CLIENT_EVENTS.SEND_MESSAGE_TO_CLIENT, (msg) => {
             this.receiveChatMessage(msg);
