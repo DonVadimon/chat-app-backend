@@ -103,9 +103,9 @@ var app = new Vue({
     },
     watch: {
         async activeRoomId(activeRoomId) {
-            const { id, messages } = await fetch(`http://localhost:3003/chat/room/${activeRoomId}`).then((data) =>
-                data.json(),
-            );
+            const { id, messages } = await fetch(`http://localhost:3003/chat/room/${activeRoomId}`)
+                .then((data) => data.json())
+                .catch(console.error);
             this.messages = Object.assign(this.messages, { [id]: messages });
             this.activeMessages = this.messages[this.activeRoomId] ?? [];
         },
@@ -122,9 +122,13 @@ var app = new Vue({
             headers: {
                 'Content-Type': 'application/json',
             },
-        }).then((data) => data.json());
+        })
+            .then((data) => data.json())
+            .catch(console.error);
 
-        this.rooms = await fetch('http://localhost:3003/chat/self-rooms').then((data) => data.json());
+        this.rooms = await fetch('http://localhost:3003/chat/self-rooms')
+            .then((data) => data.json())
+            .catch(console.error);
 
         this.activeRoomId = this.rooms[0]?.id;
 
