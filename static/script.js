@@ -32,7 +32,7 @@ var app = new Vue({
         messages: {},
         activeMessages: [],
         rooms: [],
-        activeRoomId: 1,
+        activeRoomId: 0,
         socket: { chat: null },
         alerts: [],
     },
