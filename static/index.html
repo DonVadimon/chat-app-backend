@@ -13,14 +13,11 @@
     </head>
     <body>
         <main id="v-app">
-            <section class="chat">
-                <h1>Websockets Tester</h1>
-                <h2>{{ user.username }}</h2>
-                <form>
-                    <input v-model="text" type="text" />
-                    <button type="submit" @click.prevent="sendChatMessage()">Send</button>
-                </form>
-
+            <section class="chat custom-scrollbar">
+                <div class="chat-top">
+                    <h1>Websockets Tester</h1>
+                    <h2>{{ user.username }}</h2>
+                </div>
                 <div class="messages">
                     <div
                         v-for="msg in activeMessages"
@@ -31,8 +28,12 @@
                         <strong>{{ msg.author.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
                     </div>
                 </div>
+                <form class="chat-form">
+                    <input v-model="text" type="text" />
+                    <button type="submit" @click.prevent="sendChatMessage()">Send</button>
+                </form>
             </section>
-            <section class="rooms">
+            <section class="rooms custom-scrollbar">
                 <form class="new-room-form">
                     <input v-model="newRoomName" type="text" placeholder="New Room Name" />
                     <input v-model="newRoomDescription" type="text" placeholder="New Room Description" />
@@ -49,7 +50,7 @@
                     <p>{{ room.description }}</p>
                 </div>
             </section>
-            <section class="alerts">
+            <section class="alerts custom-scrollbar">
                 <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
             </section>
         </main>

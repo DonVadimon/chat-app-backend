@@ -1,3 +1,5 @@
+const sleep = (ms) => new Promise((res) => setTimeout(() => res(undefined), ms));
+
 const TO_SERVER_EVENTS = {
     /**
      * Receive new chat message data
@@ -78,6 +80,9 @@ var app = new Vue({
         alerts: [],
     },
     methods: {
+        getChatContainer() {
+            return document.querySelector('section.chat');
+        },
         sendChatMessage() {
             if (this.text) {
                 this.socket.chat.emit(TO_SERVER_EVENTS.SEND_MESSAGE_TO_SERVER, {
@@ -92,6 +97,10 @@ var app = new Vue({
         receiveChatMessage(message) {
             this.messages[message.chatRoomEntityId] ??= [];
             this.messages[message.chatRoomEntityId].push(message);
+            // ? sleep because new message element not inserted in dom yet
+            sleep(500).then(() => {
+                this.getChatContainer().scrollTo(0, this.getChatContainer().scrollHeight);
+            });
         },
         handleRoomChange(roomId) {
             this.activeRoomId = roomId;
