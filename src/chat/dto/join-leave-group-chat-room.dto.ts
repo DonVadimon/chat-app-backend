@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt } from 'class-validator';
 
-export class JoinLeaveChatRoomDto {
+export class JoinLeaveGroupChatRoomDto {
     @ApiProperty()
     @IsInt()
     userId: number;

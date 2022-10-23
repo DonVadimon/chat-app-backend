@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { ChatRoles, ChatRoomType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
 
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
-import { CreateChatRoomDto } from './dto/create-chat-room.dto';
-import { JoinLeaveChatRoomDto } from './dto/join-leave-chat-room.dto';
+import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
+import { CreatePrivateChatRoomDto } from './dto/create-private-chat-room.dto';
+import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
+import { NotGroupChatError } from './errors/not-group-chat.error';
+import { PrivateRoomAlreadyExistError } from './errors/private-room-already-exist.error';
 
 @Injectable()
 export class ChatService {
@@ -68,14 +72,45 @@ export class ChatService {
         });
     }
 
-    createRoom(dto: CreateChatRoomDto, includeMembers = false) {
+    async createPrivateRoom(dto: CreatePrivateChatRoomDto, includeMembers = false) {
+        const isRoomAlreadyExist = await this.prisma.chatRoomEntity.findFirst({
+            where: {
+                type: ChatRoomType.PRIVATE,
+                members: {
+                    every: {
+                        id: {
+                            in: [dto.firstMemberId, dto.secondMemberId],
+                        },
+                    },
+                },
+            },
+        });
+
+        if (isRoomAlreadyExist) {
+            throw new PrivateRoomAlreadyExistError();
+        }
+
         return this.prisma.chatRoomEntity.create({
             data: {
-                type: dto.type,
+                type: ChatRoomType.PRIVATE,
                 name: dto.name,
                 description: dto.description,
                 members: {
-                    connect: dto.members.map((id) => ({ id })),
+                    connect: [{ id: dto.firstMemberId }, { id: dto.secondMemberId }],
+                },
+                chatPermissions: {
+                    createMany: {
+                        data: [
+                            {
+                                role: ChatRoles.OWNER,
+                                userEntityId: dto.firstMemberId,
+                            },
+                            {
+                                role: ChatRoles.OWNER,
+                                userEntityId: dto.secondMemberId,
+                            },
+                        ],
+                    },
                 },
             },
             include: {
@@ -84,12 +119,50 @@ export class ChatService {
         });
     }
 
-    addMemberToRoom({ roomId, userId }: JoinLeaveChatRoomDto) {
+    createGroupRoom(dto: CreateGroupChatRoomDto, ownerId: number, includeMembers = false) {
+        const members = dto.members
+            .filter((id) => id !== ownerId)
+            .map<Prisma.ChatPermissionsEntityCreateManyChatRoomInput>((memberId) => ({
+                role: ChatRoles.MEMBER,
+                userEntityId: memberId,
+            }))
+            .concat({
+                role: ChatRoles.OWNER,
+                userEntityId: ownerId,
+            });
+
+        return this.prisma.chatRoomEntity.create({
+            data: {
+                type: ChatRoomType.GROUP,
+                name: dto.name,
+                description: dto.description,
+                members: {
+                    connect: dto.members.map((id) => ({ id })),
+                },
+                chatPermissions: {
+                    createMany: {
+                        data: members,
+                    },
+                },
+            },
+            include: {
+                members: includeMembers,
+            },
+        });
+    }
+
+    addMemberToGroupRoom({ roomId, userId }: JoinLeaveGroupChatRoomDto) {
         return this.prisma.chatRoomEntity.update({
             data: {
                 members: {
                     connect: {
                         id: userId,
+                    },
+                },
+                chatPermissions: {
+                    create: {
+                        role: ChatRoles.MEMBER,
+                        userEntityId: userId,
                     },
                 },
             },
@@ -102,12 +175,24 @@ export class ChatService {
         });
     }
 
-    removeMemberFromRoom({ roomId, userId }: JoinLeaveChatRoomDto) {
+    async removeMemberFromGroupRoom({ roomId, userId }: JoinLeaveGroupChatRoomDto) {
+        const permission = await this.prisma.chatPermissionsEntity.findFirst({
+            where: {
+                userEntityId: userId,
+                chatRoomEntityId: roomId,
+            },
+        });
+
         return this.prisma.chatRoomEntity.update({
             data: {
                 members: {
                     disconnect: {
                         id: userId,
+                    },
+                },
+                chatPermissions: {
+                    delete: {
+                        id: permission.id,
                     },
                 },
             },
@@ -143,6 +228,26 @@ export class ChatService {
                         name: true,
                     },
                 },
+            },
+        });
+    }
+
+    getRoomType(roomId: number) {
+        return this.prisma.chatRoomEntity.findFirst({
+            where: {
+                id: roomId,
+            },
+            select: {
+                type: true,
+            },
+        });
+    }
+
+    getUserPermissionsInChatRoom(userId: number, roomId: number) {
+        return this.prisma.chatPermissionsEntity.findFirst({
+            where: {
+                userEntityId: userId,
+                chatRoomEntityId: roomId,
             },
         });
     }

@@ -1,9 +1,8 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
-import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ChatService } from './chat.service';
 
 @UseGuards(JwtAuthGuard)
@@ -25,10 +24,5 @@ export class ChatController {
         } else {
             throw new HttpException("You must be a member of room to access it's content", HttpStatus.FORBIDDEN);
         }
-    }
-
-    @Post('room')
-    createRoom(@Body() dto: CreateChatRoomDto) {
-        return this.chatService.createRoom(dto);
     }
 }

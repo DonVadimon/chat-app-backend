@@ -1,21 +1,61 @@
 const TO_SERVER_EVENTS = {
+    /**
+     * Receive new chat message data
+     */
     SEND_MESSAGE_TO_SERVER: 'CHAT/SEND_MESSAGE_TO_SERVER',
-    CLIENT_JOIN_ROOM: 'CHAT/CLIENT_JOIN_ROOM',
-    CLIENT_LEAVE_ROOM: 'CHAT/CLIENT_LEAVE_ROOM',
-    NEW_ROOM_CREATE: 'CHAT/NEW_ROOM_CREATE',
+    /**
+     * Recieve request to add new member to GROUP chat room
+     */
+    CLIENT_JOIN_GROUP_ROOM: 'CHAT/CLIENT_JOIN_GROUP_ROOM',
+    /**
+     * Recieve request to exclude member from GROUP chat room
+     */
+    CLIENT_LEAVE_GROUP_ROOM: 'CHAT/CLIENT_LEAVE_GROUP_ROOM',
+    /**
+     * Recieve request to create new GROUP chat room
+     */
+    NEW_GROUP_ROOM_CREATE: 'CHAT/NEW_GROUP_ROOM_CREATE',
+    /**
+     * Recieve request to create new PRIVATE chat room
+     */
+    NEW_PRIVATE_ROOM_CREATE: 'CHAT/NEW_PRIVATE_ROOM_CREATE',
 };
 
 const TO_CLIENT_EVENTS = {
+    /**
+     * Send initial data to connected client
+     */
+    CLIENT_CONNECTED: 'CHAT/CLIENT_CONNECTED',
+    /**
+     * Send new chat message in room
+     */
     SEND_MESSAGE_TO_CLIENT: 'CHAT/SEND_MESSAGE_TO_CLIENT',
+    /**
+     * Send room data that user joined and that was already configured
+     */
     CLIENT_JOINED_ROOM: 'CHAT/CLIENT_JOINED_ROOM',
+    /**
+     * Send notification that user was excluded from chat room
+     */
     CLIENT_LEAVED_ROOM: 'CHAT/CLIENT_LEAVED_ROOM',
+    /**
+     * Send GROUP chat room where member was excluded from
+     */
+    MEMBER_EXCLUDED_FROM_GROUP_ROOM: 'CHAT/MEMBER_EXCLUDED_FROM_GROUP_ROOM',
+    /**
+     * Send GROUP chat room where new member was added to
+     */
+    NEW_MEMBER_ADDED_TO_GROUP_ROOM: 'CHAT/NEW_MEMBER_ADDED_TO_GROUP_ROOM',
+    /**
+     * Send cew chat room
+     */
     NEW_ROOM_CREATED: 'CHAT/NEW_ROOM_CREATED',
 };
 
-const ChatRoomType = {
-    PRIVATE: 'PRIVATE',
-    GROUP: 'GROUP',
-};
+// const ChatRoomType = {
+//     PRIVATE: 'PRIVATE',
+//     GROUP: 'GROUP',
+// };
 
 const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/${url}`;
 
@@ -29,7 +69,6 @@ var app = new Vue({
         newRoomName: '',
         newRoomDescription: '',
         newRoomUsers: [1, 2],
-        newRoomType: ChatRoomType.PRIVATE,
 
         messages: {},
         activeMessages: [],
@@ -60,8 +99,7 @@ var app = new Vue({
         },
         createNewRoom() {
             if (this.newRoomName && this.newRoomDescription) {
-                this.socket.chat.emit(TO_SERVER_EVENTS.NEW_ROOM_CREATE, {
-                    type: this.newRoomType,
+                this.socket.chat.emit(TO_SERVER_EVENTS.NEW_GROUP_ROOM_CREATE, {
                     members: this.newRoomUsers,
                     name: this.newRoomName,
                     description: this.newRoomDescription,
@@ -128,14 +166,13 @@ var app = new Vue({
             .then((data) => data.json())
             .catch(console.error);
 
-        this.rooms = await fetch(createApiUrl('chat/self-rooms'))
-            .then((data) => data.json())
-            .catch(console.error);
-
-        this.activeRoomId = this.rooms[0]?.id;
-
         // ? sockets
         this.socket.chat = io('/chat');
+
+        this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_CONNECTED, ({ rooms }) => {
+            this.rooms = rooms;
+            this.activeRoomId = this.rooms[0]?.id;
+        });
 
         this.socket.chat.on(TO_CLIENT_EVENTS.SEND_MESSAGE_TO_CLIENT, (msg) => {
             this.receiveChatMessage(msg);

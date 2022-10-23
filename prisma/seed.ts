@@ -1,51 +1,110 @@
-import { ChatRoomType, Prisma, PrismaClient, UserRoles } from '@prisma/client';
+import { ChatRoles, ChatRoomType, Prisma, PrismaClient, UserEntity, UserRoles } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const ADMIN_USERNAME = 'admin';
+const REGULAR_USERNAME = 'regular';
+
 const userData: Prisma.UserEntityCreateInput[] = [
     {
-        username: 'admin',
-        password: 'admin',
-        name: 'admin',
+        username: ADMIN_USERNAME,
+        password: ADMIN_USERNAME,
+        name: ADMIN_USERNAME,
         email: 'admin@admin.com',
         roles: [UserRoles.REGULAR, UserRoles.ADMIN],
     },
     {
-        username: 'regular',
-        password: 'regular',
-        name: 'regular',
+        username: REGULAR_USERNAME,
+        password: REGULAR_USERNAME,
+        name: REGULAR_USERNAME,
         email: 'regular@regular.com',
         roles: [UserRoles.REGULAR],
     },
 ];
 
-const chatRoomsData: Prisma.ChatRoomEntityCreateInput[] = [
+const getChatRoomsData = (adminId: number, regularId: number): Prisma.ChatRoomEntityCreateInput[] => [
     {
         type: ChatRoomType.PRIVATE,
-        description: 'Mock chat room',
+        description: 'Mock private chat',
         members: {
-            connect: [{ username: 'admin' }, { username: 'regular' }],
+            connect: [{ username: ADMIN_USERNAME }, { username: REGULAR_USERNAME }],
         },
         messages: {
             create: [
                 {
                     author: {
                         connect: {
-                            username: 'admin',
+                            username: ADMIN_USERNAME,
                         },
                     },
-                    content: 'Hello from Admin',
+                    content: 'Hello from Admin in private chat',
                 },
                 {
                     author: {
                         connect: {
-                            username: 'regular',
+                            username: REGULAR_USERNAME,
                         },
                     },
-                    content: 'Hello from Regular',
+                    content: 'Hello from Regular in private chat',
                 },
             ],
+        },
+        chatPermissions: {
+            createMany: {
+                data: [
+                    {
+                        userEntityId: adminId,
+                        role: ChatRoles.OWNER,
+                    },
+                    {
+                        userEntityId: regularId,
+                        role: ChatRoles.OWNER,
+                    },
+                ],
+            },
+        },
+    },
+    {
+        type: ChatRoomType.GROUP,
+        name: 'Group chat',
+        description: 'Mock group chat',
+        members: {
+            connect: [{ username: ADMIN_USERNAME }, { username: REGULAR_USERNAME }],
+        },
+        messages: {
+            create: [
+                {
+                    author: {
+                        connect: {
+                            username: ADMIN_USERNAME,
+                        },
+                    },
+                    content: 'Hello from Admin in group chat',
+                },
+                {
+                    author: {
+                        connect: {
+                            username: REGULAR_USERNAME,
+                        },
+                    },
+                    content: 'Hello from Regular in group chat',
+                },
+            ],
+        },
+        chatPermissions: {
+            createMany: {
+                data: [
+                    {
+                        userEntityId: adminId,
+                        role: ChatRoles.OWNER,
+                    },
+                    {
+                        userEntityId: regularId,
+                        role: ChatRoles.MEMBER,
+                    },
+                ],
+            },
         },
     },
 ];
@@ -65,13 +124,20 @@ const createUser = async ({ password, ...rest }: Prisma.UserEntityCreateInput) =
 
 async function main() {
     console.log(`Start seeding ...`);
+    const users: UserEntity[] = [];
+
     for (const userDto of userData) {
         const createdUser = await createUser(userDto);
+        users.push(createdUser);
         console.log(`Created user ${createdUser.username} with id ${createdUser.id}`);
     }
+    const chatRoomsData = getChatRoomsData(
+        users.find((user) => user.username === ADMIN_USERNAME).id,
+        users.find((user) => user.username === REGULAR_USERNAME).id,
+    );
     for (const roomDto of chatRoomsData) {
         const createdRoom = await prisma.chatRoomEntity.create({ data: roomDto });
-        console.log();
+        console.log(`Created room ${createdRoom.name} with id ${createdRoom.id}`);
     }
     console.log(`Seeding finished.`);
 }
