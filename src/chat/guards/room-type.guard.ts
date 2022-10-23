@@ -2,18 +2,16 @@ import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 
-import { ChatService } from '@/chat/chat.service';
+import { ChatUtilsService } from '@/chat/chat.utils.service';
 
-type RoomIdExtractor = (data: any) => number;
+export type RoomIdExtractor<T> = (data: T) => number;
 
-export const defaultRoomIdExtractor: RoomIdExtractor = (data) => data?.roomId;
-
-export const RoomTypeGuard = (
-    roomIdExtractor = defaultRoomIdExtractor,
+export const RoomTypeGuard = <T>(
+    roomIdExtractor: RoomIdExtractor<T>,
     ...allowedRoomTypes: ChatRoomType[]
 ): Type<CanActivate> => {
     class RoomTypeGuardMixin {
-        constructor(private readonly chatService: ChatService) {}
+        constructor(private readonly chatUtilsService: ChatUtilsService) {}
 
         async canActivate(context: ExecutionContext): Promise<boolean> {
             try {
@@ -21,7 +19,7 @@ export const RoomTypeGuard = (
 
                 const roomId = roomIdExtractor(data);
 
-                const room = await this.chatService.getRoomType(roomId);
+                const room = await this.chatUtilsService.getRoomType(roomId);
 
                 return allowedRoomTypes.includes(room.type);
             } catch (error) {

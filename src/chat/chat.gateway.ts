@@ -18,13 +18,16 @@ import { CORS_ORIGINS } from '@/constants';
 
 import { CreateChatMessageEventDto } from './dto/create-chat-message-event.dto';
 import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
-import { CreatePrivateChatRoomDto } from './dto/create-private-chat-room.dto';
+import { CreatePrivateChatRoomEventDto } from './dto/create-private-chat-room-event.dto';
 import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
 import { PermittedToAddChatMemberGuard } from './guards/permitted-to-add-chat-member.guard';
 import { PermittedToDeleteChatMemberGuard } from './guards/permitted-to-delete-chat-member.guard';
-import { defaultRoomIdExtractor, RoomTypeGuard } from './guards/room-type.guard';
+import { PrivateRoomDoesntExistYetGuard } from './guards/private-room-doesnt-exist-yet.guard';
+import { RoomTypeGuard } from './guards/room-type.guard';
 import { ChatService } from './chat.service';
 import { ChatIncomingEvents, ChatOutgoingEvents, ChatRoomWithMembers } from './chat.types';
+import { joinLeaveRoomIdExtractor } from './chat.utils';
+import { ChatUtilsService } from './chat.utils.service';
 
 @WebSocketGateway({
     namespace: '/chat',
@@ -34,7 +37,11 @@ import { ChatIncomingEvents, ChatOutgoingEvents, ChatRoomWithMembers } from './c
 })
 @UseGuards(WsJwtAuthGuard)
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-    constructor(private readonly chatService: ChatService, private readonly authService: AuthService) {}
+    constructor(
+        private readonly chatService: ChatService,
+        private readonly chatUtilsService: ChatUtilsService,
+        private readonly authService: AuthService,
+    ) {}
 
     @WebSocketServer() wss: Server;
 
@@ -51,7 +58,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             const user = await this.authService.extractUserFromWsClient(client);
             this.usersToSockets.set(user.id, client.id);
             const userRooms = await this.chatService.getUserRooms(user.id);
-            client.join(userRooms.map(({ id }) => this.chatService.createRoomWsId(id)));
+            client.join(userRooms.map(({ id }) => this.chatUtilsService.createRoomWsId(id)));
             client.emit(ChatOutgoingEvents.CLIENT_CONNECTED, { rooms: userRooms });
         } catch (error) {
             throw new WsException('Unauthorized');
@@ -72,7 +79,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     async handleMessage(client: SocketWithUser, dto: CreateChatMessageEventDto) {
         const message = await this.chatService.createMessage({ ...dto, authorId: client.data.user.id });
         this.wss
-            .to(this.chatService.createRoomWsId(dto.roomId))
+            .to(this.chatUtilsService.createRoomWsId(dto.roomId))
             .emit(ChatOutgoingEvents.SEND_MESSAGE_TO_CLIENT, message);
     }
 
@@ -85,32 +92,33 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage(ChatIncomingEvents.NEW_PRIVATE_ROOM_CREATE)
-    async handlePrivateRoomCreate(client: SocketWithUser, dto: CreatePrivateChatRoomDto) {
-        const room = await this.chatService.createPrivateRoom(dto, true);
+    @UseGuards(PrivateRoomDoesntExistYetGuard)
+    async handlePrivateRoomCreate(client: SocketWithUser, dto: CreatePrivateChatRoomEventDto) {
+        const room = await this.chatService.createPrivateRoom({ ...dto, firstMemberId: client.data.user.id }, true);
         this.notifyAboutNewRoomCreate(client, room);
     }
 
     // ? JOIN/LEAVE GROUP CHAT
 
     @SubscribeMessage(ChatIncomingEvents.CLIENT_JOIN_GROUP_ROOM)
-    @UseGuards(PermittedToAddChatMemberGuard, RoomTypeGuard(defaultRoomIdExtractor, ChatRoomType.GROUP))
+    @UseGuards(PermittedToAddChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomJoin(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.addMemberToGroupRoom(dto);
-        client.join(this.chatService.createRoomWsId(room.id));
+        client.join(this.chatUtilsService.createRoomWsId(room.id));
         client.emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
         this.wss
-            .to(this.chatService.createRoomWsId(room.id))
+            .to(this.chatUtilsService.createRoomWsId(room.id))
             .emit(ChatOutgoingEvents.NEW_MEMBER_ADDED_TO_GROUP_ROOM, room);
     }
 
     @SubscribeMessage(ChatIncomingEvents.CLIENT_LEAVE_GROUP_ROOM)
-    @UseGuards(PermittedToDeleteChatMemberGuard, RoomTypeGuard(defaultRoomIdExtractor, ChatRoomType.GROUP))
+    @UseGuards(PermittedToDeleteChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomLeave(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.removeMemberFromGroupRoom(dto);
-        client.leave(this.chatService.createRoomWsId(room.id));
+        client.leave(this.chatUtilsService.createRoomWsId(room.id));
         this.wss.in(this.usersToSockets.get(dto.userId)).emit(ChatOutgoingEvents.CLIENT_LEAVED_ROOM, room);
         this.wss
-            .to(this.chatService.createRoomWsId(room.id))
+            .to(this.chatUtilsService.createRoomWsId(room.id))
             .emit(ChatOutgoingEvents.MEMBER_EXCLUDED_FROM_GROUP_ROOM, room);
     }
 
@@ -118,9 +126,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     private notifyAboutNewRoomCreate(client: SocketWithUser, room: ChatRoomWithMembers) {
         room.members.forEach((member) => {
-            this.wss.in(this.usersToSockets.get(member.id)).socketsJoin(this.chatService.createRoomWsId(room.id));
+            this.wss.in(this.usersToSockets.get(member.id)).socketsJoin(this.chatUtilsService.createRoomWsId(room.id));
         });
-        this.wss.to(this.chatService.createRoomWsId(room.id)).emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
+        this.wss.to(this.chatUtilsService.createRoomWsId(room.id)).emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
         client.emit(ChatOutgoingEvents.NEW_ROOM_CREATED, room);
     }
 }

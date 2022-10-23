@@ -7,10 +7,11 @@ import { UsersModule } from '@/users/users.module';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { ChatUtilsService } from './chat.utils.service';
 
 @Module({
     imports: [PrismaModule, UsersModule, AuthModule],
-    providers: [ChatGateway, ChatService],
+    providers: [ChatGateway, ChatService, ChatUtilsService],
     controllers: [ChatController],
 })
 export class ChatModule {}

@@ -1,15 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsInt } from 'class-validator';
 
-export class CreateChatMessageDto {
-    @ApiProperty()
-    @IsNotEmpty()
-    content: string;
+import { CreateChatMessageEventDto } from './create-chat-message-event.dto';
 
-    @ApiProperty()
-    @IsInt()
-    roomId: number;
-
+export class CreateChatMessageDto extends CreateChatMessageEventDto {
     @ApiProperty()
     @IsInt()
     authorId: number;

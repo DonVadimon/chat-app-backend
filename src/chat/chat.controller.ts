@@ -4,11 +4,12 @@ import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 import { ChatService } from './chat.service';
+import { ChatUtilsService } from './chat.utils.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
-    constructor(private readonly chatService: ChatService) {}
+    constructor(private readonly chatService: ChatService, private readonly chatUtilsService: ChatUtilsService) {}
 
     @Get('self-rooms')
     getSelfRooms(@Req() request: RequestWithUser) {
@@ -18,7 +19,7 @@ export class ChatController {
     @Get('room/:id')
     async getRoomDetails(@Req() request: RequestWithUser, @Param('id') roomIdParam: string) {
         const roomId = Number(roomIdParam);
-        const isMemberOfRoom = await this.chatService.isMemberOfRoom(request.user.id, roomId);
+        const isMemberOfRoom = await this.chatUtilsService.isMemberOfRoom(request.user.id, roomId);
         if (isMemberOfRoom) {
             return this.chatService.getRoomWithMessages(roomId);
         } else {

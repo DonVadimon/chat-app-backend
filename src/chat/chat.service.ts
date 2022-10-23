@@ -7,31 +7,10 @@ import { CreateChatMessageDto } from './dto/create-chat-message.dto';
 import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
 import { CreatePrivateChatRoomDto } from './dto/create-private-chat-room.dto';
 import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
-import { NotGroupChatError } from './errors/not-group-chat.error';
-import { PrivateRoomAlreadyExistError } from './errors/private-room-already-exist.error';
 
 @Injectable()
 export class ChatService {
     constructor(private prisma: PrismaService) {}
-
-    createRoomWsId(roomId: number): string {
-        return roomId.toString();
-    }
-
-    async isMemberOfRoom(userId: number, roomId: number) {
-        const member = await this.prisma.userEntity.findFirst({
-            where: {
-                id: userId,
-                rooms: {
-                    some: {
-                        id: roomId,
-                    },
-                },
-            },
-        });
-
-        return !!member;
-    }
 
     getUserRooms(userId: number) {
         return this.prisma.chatRoomEntity.findMany({
@@ -73,23 +52,6 @@ export class ChatService {
     }
 
     async createPrivateRoom(dto: CreatePrivateChatRoomDto, includeMembers = false) {
-        const isRoomAlreadyExist = await this.prisma.chatRoomEntity.findFirst({
-            where: {
-                type: ChatRoomType.PRIVATE,
-                members: {
-                    every: {
-                        id: {
-                            in: [dto.firstMemberId, dto.secondMemberId],
-                        },
-                    },
-                },
-            },
-        });
-
-        if (isRoomAlreadyExist) {
-            throw new PrivateRoomAlreadyExistError();
-        }
-
         return this.prisma.chatRoomEntity.create({
             data: {
                 type: ChatRoomType.PRIVATE,
@@ -228,26 +190,6 @@ export class ChatService {
                         name: true,
                     },
                 },
-            },
-        });
-    }
-
-    getRoomType(roomId: number) {
-        return this.prisma.chatRoomEntity.findFirst({
-            where: {
-                id: roomId,
-            },
-            select: {
-                type: true,
-            },
-        });
-    }
-
-    getUserPermissionsInChatRoom(userId: number, roomId: number) {
-        return this.prisma.chatPermissionsEntity.findFirst({
-            where: {
-                userEntityId: userId,
-                chatRoomEntityId: roomId,
             },
         });
     }
