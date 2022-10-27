@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
 
 import { AuthService } from '@/auth/auth.service';
 import { SocketWithUser } from '@/auth/auth.types';
+import { UnauthorizedWsException } from '@/auth/exceptions/unauthorized-ws.exception';
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
@@ -21,7 +21,7 @@ export class WsJwtAuthGuard implements CanActivate {
             const client = context.switchToWs().getClient<SocketWithUser>();
             client.data.user = undefined;
 
-            throw new WsException('Unauthorized');
+            throw new UnauthorizedWsException();
         }
     }
 }

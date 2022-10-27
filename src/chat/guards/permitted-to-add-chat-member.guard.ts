@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
 import { ChatRoles } from '@prisma/client';
 
 import { SocketWithUser } from '@/auth/auth.types';
-import { ChatUtilsService } from '@/chat/chat.utils.service';
+import { NotPermittedWsException } from '@/auth/exceptions/not-permitted-ws.exception';
 import { JoinLeaveGroupChatRoomDto } from '@/chat/dto/join-leave-group-chat-room.dto';
+import { ChatUtilsService } from '@/chat/services/chat.utils.service';
 
 /**
  * You can add new member to room only if you have OWNER permissions
@@ -24,7 +24,7 @@ export class PermittedToAddChatMemberGuard implements CanActivate {
 
             return userPermissions.role === ChatRoles.OWNER;
         } catch (error) {
-            throw new WsException('Not permitted for action');
+            throw new NotPermittedWsException();
         }
     }
 }

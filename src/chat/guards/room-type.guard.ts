@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 
-import { ChatUtilsService } from '@/chat/chat.utils.service';
+import { ChatUtilsService } from '@/chat/services/chat.utils.service';
 
 export type RoomIdExtractor<T> = (data: T) => number;
 

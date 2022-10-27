@@ -3,10 +3,10 @@ import { ChatRoles, ChatRoomType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
 
-import { CreateChatMessageDto } from './dto/create-chat-message.dto';
-import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
-import { CreatePrivateChatRoomDto } from './dto/create-private-chat-room.dto';
-import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
+import { CreateChatMessageDto } from '../dto/create-chat-message.dto';
+import { CreateGroupChatRoomDto } from '../dto/create-group-chat-room.dto';
+import { CreatePrivateChatRoomDto } from '../dto/create-private-chat-room.dto';
+import { JoinLeaveGroupChatRoomDto } from '../dto/join-leave-group-chat-room.dto';
 
 @Injectable()
 export class ChatService {

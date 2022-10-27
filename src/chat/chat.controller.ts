@@ -3,8 +3,8 @@ import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } fro
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
-import { ChatService } from './chat.service';
-import { ChatUtilsService } from './chat.utils.service';
+import { ChatService } from './services/chat.service';
+import { ChatUtilsService } from './services/chat.utils.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('chat')

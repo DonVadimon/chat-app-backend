@@ -6,13 +6,13 @@ import {
     SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
-    WsException,
 } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
 
 import { AuthService } from '@/auth/auth.service';
 import { SocketWithUser } from '@/auth/auth.types';
+import { UnauthorizedWsException } from '@/auth/exceptions/unauthorized-ws.exception';
 import { WsJwtAuthGuard } from '@/auth/guards/ws-jwt-auth.guard';
 import { CORS_ORIGINS } from '@/constants';
 
@@ -24,10 +24,10 @@ import { PermittedToAddChatMemberGuard } from './guards/permitted-to-add-chat-me
 import { PermittedToDeleteChatMemberGuard } from './guards/permitted-to-delete-chat-member.guard';
 import { PrivateRoomDoesntExistYetGuard } from './guards/private-room-doesnt-exist-yet.guard';
 import { RoomTypeGuard } from './guards/room-type.guard';
-import { ChatService } from './chat.service';
+import { ChatService } from './services/chat.service';
+import { ChatUtilsService } from './services/chat.utils.service';
 import { ChatIncomingEvents, ChatOutgoingEvents, ChatRoomWithMembers } from './chat.types';
 import { joinLeaveRoomIdExtractor } from './chat.utils';
-import { ChatUtilsService } from './chat.utils.service';
 
 @WebSocketGateway({
     namespace: '/chat',
@@ -61,7 +61,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             client.join(userRooms.map(({ id }) => this.chatUtilsService.createRoomWsId(id)));
             client.emit(ChatOutgoingEvents.CLIENT_CONNECTED, { rooms: userRooms });
         } catch (error) {
-            throw new WsException('Unauthorized');
+            throw new UnauthorizedWsException();
         }
     }
 
@@ -69,7 +69,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         try {
             this.usersToSockets.delete(client.data.user.id);
         } catch (error) {
-            throw new WsException('Unauthorized');
+            this.logger.error(error);
         }
     }
 

@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
 import { ChatRoles } from '@prisma/client';
 
 import { SocketWithUser } from '@/auth/auth.types';
-import { ChatUtilsService } from '@/chat/chat.utils.service';
+import { NotPermittedWsException } from '@/auth/exceptions/not-permitted-ws.exception';
 import { JoinLeaveGroupChatRoomDto } from '@/chat/dto/join-leave-group-chat-room.dto';
+import { ChatUtilsService } from '@/chat/services/chat.utils.service';
 
 /**
  * You can exclude member from chat if you have OWNER permissions or if you want to exclude yourself
@@ -24,7 +24,7 @@ export class PermittedToDeleteChatMemberGuard implements CanActivate {
 
             return userPermissions.role === ChatRoles.OWNER || dto.userId === client.data.user.id;
         } catch (error) {
-            throw new WsException('Not permitted for action');
+            throw new NotPermittedWsException();
         }
     }
 }

@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 
 import { CreatePrivateChatRoomDto } from '@/chat/dto/create-private-chat-room.dto';
+import { PrivateRoomAlreadyExistWsException } from '@/chat/exceptions/private-room-already-exist-ws.exception';
 import { PrismaService } from '@/prisma/prisma.service';
 
 /**
@@ -30,7 +30,7 @@ export class PrivateRoomDoesntExistYetGuard implements CanActivate {
 
             return !isRoomAlreadyExist;
         } catch (error) {
-            throw new WsException('Private room with this members already exist');
+            throw new PrivateRoomAlreadyExistWsException();
         }
     }
 }
