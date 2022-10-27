@@ -37,7 +37,12 @@ export class AuthController {
     @Post()
     async register(@Body() dto: CreateUserDto, @Res() response: Response) {
         const user = await this.authService.registerUser(dto);
-        response.cookie(this.configService.get('AUTH_COOKIE_NAME'), '', this.getAuthCookieOptions(0));
+        const token = await this.authService.generateJwtToken(user);
+        response.cookie(
+            this.configService.get('AUTH_COOKIE_NAME'),
+            token,
+            this.getAuthCookieOptions(this.configService.get('EXPIRATION_TIME')),
+        );
         return response.send(user);
     }
 
