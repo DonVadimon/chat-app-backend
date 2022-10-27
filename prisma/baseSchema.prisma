@@ -11,15 +11,16 @@ datasource db {
 
 model UserEntity {
     // ? required fields
-    id       Int                 @id @default(autoincrement())
-    username String              @unique
-    password String
-    name     String
-    roles    UserRoles[]
-    rooms    ChatRoomEntity[]
-    messages ChatMessageEntity[]
+    id              Int                     @id @default(autoincrement())
+    username        String                  @unique
+    password        String
+    name            String
+    roles           UserRoles[]
+    rooms           ChatRoomEntity[]
+    messages        ChatMessageEntity[]
+    chatPermissions ChatPermissionsEntity[]
     // ? optional fields
-    email    String?             @unique
+    email           String?                 @unique
 }
 
 enum UserRoles {
@@ -30,15 +31,16 @@ enum UserRoles {
 // ? CHAT ROOM
 
 model ChatRoomEntity {
-    id          Int                 @id @default(autoincrement())
-    type        ChatRoomType
-    members     UserEntity[]
-    messages    ChatMessageEntity[]
-    name        String?
-    description String?
+    id              Int                     @id @default(autoincrement())
+    type            ChatRoomType
+    members         UserEntity[]
+    messages        ChatMessageEntity[]
+    name            String?
+    description     String?
+    chatPermissions ChatPermissionsEntity[]
     // ? timestamps
-    createdAt   DateTime            @default(now())
-    updatedAt   DateTime            @updatedAt
+    createdAt       DateTime                @default(now())
+    updatedAt       DateTime                @updatedAt
 }
 
 enum ChatRoomType {
@@ -53,9 +55,28 @@ model ChatMessageEntity {
     content          String
     room             ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id])
     chatRoomEntityId Int
-    author           UserEntity     @relation(fields: [userEntityId], references: [id])
-    userEntityId     Int
+    author           UserEntity     @relation(fields: [authorEntityId], references: [id])
+    authorEntityId   Int
     // ? timestamps
     createdAt        DateTime       @default(now())
     updatedAt        DateTime       @updatedAt
+}
+
+// ? CHAT PERMISSIONS
+
+model ChatPermissionsEntity {
+    id               Int            @id @default(autoincrement())
+    user             UserEntity     @relation(fields: [userEntityId], references: [id])
+    chatRoom         ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id])
+    role             ChatRoles
+    userEntityId     Int
+    chatRoomEntityId Int
+    // ? timestamps
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
+}
+
+enum ChatRoles {
+    OWNER
+    MEMBER
 }

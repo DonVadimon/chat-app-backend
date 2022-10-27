@@ -3,6 +3,7 @@ import path from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from '@/auth/auth.module';
 import { ChatModule } from '@/chat/chat.module';
@@ -19,6 +20,18 @@ import { AppService } from './app.service';
         ChatModule,
         ConfigModule.forRoot({ isGlobal: true }),
         PrismaModule,
+        LoggerModule.forRoot({
+            pinoHttp: {
+                transport: {
+                    target: 'pino-pretty',
+                    options: {
+                        colorize: true,
+                        singleLine: true,
+                    },
+                },
+                quietReqLogger: true,
+            },
+        }),
         ServeStaticModule.forRoot({
             rootPath: path.join(__dirname, '..', '..', '..', 'static'),
         }),

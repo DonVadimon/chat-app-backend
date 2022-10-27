@@ -1,11 +1,27 @@
+body {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 12px;
+    height: 100vh;
+    overflow: hidden;
+}
+
 main {
+    height: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas: 'chat rooms alerts';
 }
 
+main section {
+    overflow: auto;
+    height: 100%;
+}
+
 section.chat {
+    scroll-behavior: smooth;
     grid-area: chat;
+    position: relative;
 }
 
 .messages {
@@ -32,6 +48,36 @@ section.chat {
 
 .message i {
     font-size: 0.6em;
+}
+
+.chat .chat-top {
+    position: sticky;
+    top: 0;
+    left: 0;
+    background: white;
+    box-sizing: border-box;
+    padding: 8px 0;
+}
+
+.chat .chat-top h1 {
+    margin: 0 0 8px 0;
+}
+
+.chat .chat-form {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    background: white;
+}
+
+.chat .chat-form input {
+    flex-grow: 1;
+    margin-right: 12px;
 }
 
 section.rooms {
@@ -84,4 +130,27 @@ section.alerts {
 .tab-btn.active {
     background: blue;
     color: white;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+}
+
+/* Track */
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: white;
+}
+
+/* Handle */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: grey;
+    border: 2px solid white;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #b4b4b480;
 }

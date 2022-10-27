@@ -1,15 +1,15 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
-import { CreateChatRoomDto } from './dto/create-chat-room.dto';
-import { ChatService } from './chat.service';
+import { ChatService } from './services/chat.service';
+import { ChatUtilsService } from './services/chat.utils.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
-    constructor(private readonly chatService: ChatService) {}
+    constructor(private readonly chatService: ChatService, private readonly chatUtilsService: ChatUtilsService) {}
 
     @Get('self-rooms')
     getSelfRooms(@Req() request: RequestWithUser) {
@@ -19,16 +19,11 @@ export class ChatController {
     @Get('room/:id')
     async getRoomDetails(@Req() request: RequestWithUser, @Param('id') roomIdParam: string) {
         const roomId = Number(roomIdParam);
-        const isMemberOfRoom = await this.chatService.isMemberOfRoom(request.user.id, roomId);
+        const isMemberOfRoom = await this.chatUtilsService.isMemberOfRoom(request.user.id, roomId);
         if (isMemberOfRoom) {
             return this.chatService.getRoomWithMessages(roomId);
         } else {
             throw new HttpException("You must be a member of room to access it's content", HttpStatus.FORBIDDEN);
         }
-    }
-
-    @Post('room')
-    createRoom(@Body() dto: CreateChatRoomDto) {
-        return this.chatService.createRoom(dto);
     }
 }

@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
 import { UserRoles } from '@prisma/client';
 
-import { RequestWithUser } from '../auth.types';
+import { RequestWithUser } from '@/auth/auth.types';
 
 import { JwtAuthGuard } from './jwt-auth.guard';
 
