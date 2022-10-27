@@ -1,4 +1,4 @@
-import { ChatRoomEntity, UserEntity } from '@prisma/client';
+import { ChatMessageEntity, ChatRoomEntity, UserEntity } from '@prisma/client';
 
 export enum ChatIncomingEvents {
     /**
@@ -56,4 +56,19 @@ export enum ChatOutgoingEvents {
 
 export type ChatRoomWithMembers = ChatRoomEntity & {
     members: UserEntity[];
+};
+
+export type ChatMessageAuthor = {
+    id: number;
+    name: string;
+    username: string;
+};
+
+export type ChatMessageDetails = ChatMessageEntity & {
+    author: ChatMessageAuthor;
+};
+
+export type ChatRoomDetails = ChatRoomEntity & {
+    members: UserEntity[];
+    messages: ChatMessageDetails[];
 };

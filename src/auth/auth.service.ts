@@ -5,6 +5,7 @@ import { UserEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Socket } from 'socket.io';
 
+import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
 import { parseCookieString } from '@/utils/parse-cookie-string';
 
@@ -30,6 +31,10 @@ export class AuthService {
         } catch (error) {
             throw new HttpException('Wrong credentials provided', HttpStatus.BAD_REQUEST);
         }
+    }
+
+    registerUser(dto: CreateUserDto) {
+        return this.usersService.createUser(dto);
     }
 
     async generateJwtToken({ id, username }: UserInReq) {

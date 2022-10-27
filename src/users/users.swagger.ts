@@ -4,19 +4,14 @@ import { UserEntity, UserRoles } from '@prisma/client';
 export class ApiUserEntityResponse implements UserEntity {
     @ApiProperty()
     id: number;
-
     @ApiProperty()
     username: string;
-
     @ApiProperty()
     password: string;
-
     @ApiProperty()
     name: string;
-
-    @ApiProperty({ enum: UserRoles })
+    @ApiProperty({ enum: UserRoles, isArray: true })
     roles: UserRoles[];
-
     @ApiPropertyOptional()
     email: string;
 }

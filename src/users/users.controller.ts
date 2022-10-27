@@ -24,12 +24,6 @@ export class UsersController {
         return { available: !findedUser };
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Post()
-    createUser(@Body() dto: CreateUserDto) {
-        return this.usersService.createUser(dto);
-    }
-
     @ApiOkResponse({ type: ApiUserEntityResponse, isArray: true })
     @Get()
     @UseGuards(RolesGuard(UserRoles.ADMIN))
