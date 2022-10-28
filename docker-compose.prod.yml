@@ -2,13 +2,16 @@ version: '3.9'
 
 services:
   db:
+    environment:
+      - DB_PATH=${DB_PATH}
     volumes:
       - ${DB_PATH}:/var/lib/postgresql/data
     ports:
-      - 5432:5423
+      - 5432:5432
+
   app:
     container_name: chat-app-app_prod
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PWD}@localhost:5432/${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PWD}@chat-app-db:5432/${DB_NAME}
     command: bash -c 'sh ./wait-for-postgres.sh npm run build && npx prisma migrate deploy && npm run prisma:seed:force && npm run start:prod'
