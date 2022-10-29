@@ -1,5 +1,6 @@
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -11,8 +12,8 @@ datasource db {
 
 model UserEntity {
     // ? required fields
-    id              Int                     @id @default(autoincrement())
-    username        String                  @unique
+    id              Int                      @id @default(autoincrement())
+    username        String                   @unique
     password        String
     name            String
     roles           UserRoles[]
@@ -20,7 +21,11 @@ model UserEntity {
     messages        ChatMessageEntity[]
     chatPermissions ChatPermissionsEntity[]
     // ? optional fields
-    email           String?                 @unique
+    email           String?                  @unique
+    // ? search
+    textSearch      Unsupported("TSVECTOR")?
+
+    @@index([textSearch])
 }
 
 enum UserRoles {
@@ -31,7 +36,7 @@ enum UserRoles {
 // ? CHAT ROOM
 
 model ChatRoomEntity {
-    id              Int                     @id @default(autoincrement())
+    id              Int                      @id @default(autoincrement())
     type            ChatRoomType
     members         UserEntity[]
     messages        ChatMessageEntity[]
@@ -39,8 +44,12 @@ model ChatRoomEntity {
     description     String?
     chatPermissions ChatPermissionsEntity[]
     // ? timestamps
-    createdAt       DateTime                @default(now())
-    updatedAt       DateTime                @updatedAt
+    createdAt       DateTime                 @default(now())
+    updatedAt       DateTime                 @updatedAt
+    // ? search
+    textSearch      Unsupported("TSVECTOR")?
+
+    @@index([textSearch])
 }
 
 enum ChatRoomType {
@@ -51,15 +60,19 @@ enum ChatRoomType {
 // ? CHAT MESSAGE
 
 model ChatMessageEntity {
-    id               Int            @id @default(autoincrement())
+    id               Int                      @id @default(autoincrement())
     content          String
-    room             ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id])
+    room             ChatRoomEntity           @relation(fields: [chatRoomEntityId], references: [id])
     chatRoomEntityId Int
-    author           UserEntity     @relation(fields: [authorEntityId], references: [id])
+    author           UserEntity               @relation(fields: [authorEntityId], references: [id])
     authorEntityId   Int
     // ? timestamps
-    createdAt        DateTime       @default(now())
-    updatedAt        DateTime       @updatedAt
+    createdAt        DateTime                 @default(now())
+    updatedAt        DateTime                 @updatedAt
+    // ? search
+    textSearch       Unsupported("TSVECTOR")?
+
+    @@index([textSearch])
 }
 
 // ? CHAT PERMISSIONS

@@ -15,7 +15,10 @@ import { RequestWithUser } from './auth.types';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService, private readonly configService: ConfigService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
+    ) {}
 
     @ApiBody({ type: LoginDto })
     @ApiOkResponse({ type: ApiUserEntityResponse })
@@ -34,7 +37,7 @@ export class AuthController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
-    @Post()
+    @Post('register')
     async register(@Body() dto: CreateUserDto, @Res() response: Response) {
         const user = await this.authService.registerUser(dto);
         const token = await this.authService.generateJwtToken(user);

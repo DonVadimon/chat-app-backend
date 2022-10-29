@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ChatRoles, Prisma } from '@prisma/client';
-import { ArrayMinSize, ArrayUnique, IsArray, IsEnum, IsInt } from 'class-validator';
+import { ArrayMinSize, ArrayUnique, IsArray, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateGroupChatRoomMemberDto {
     @ApiProperty()
@@ -25,8 +25,12 @@ export class CreateGroupChatRoomDto implements Partial<Record<keyof Prisma.ChatR
     members: number[];
 
     @ApiProperty()
+    @IsString()
+    @IsOptional()
     name?: string;
 
     @ApiProperty()
+    @IsString()
+    @IsOptional()
     description?: string;
 }
