@@ -1,9 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma, UserRoles } from '@prisma/client';
-import { ArrayUnique, IsArray, IsEmail, IsEnum, IsOptional } from 'class-validator';
+import { ArrayUnique, IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto implements Prisma.UserEntityUpdateInput {
     @ApiProperty()
+    @IsString()
+    @IsOptional()
     username?: string;
 
     @ApiProperty()
@@ -14,6 +16,8 @@ export class UpdateUserDto implements Prisma.UserEntityUpdateInput {
     roles?: UserRoles[];
 
     @ApiProperty()
+    @IsString()
+    @IsOptional()
     name?: string;
 
     @ApiProperty()

@@ -18,7 +18,7 @@ import { AuthService } from './auth.service';
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
-            useFactory: async (configService: ConfigService) => ({
+            useFactory: async (configService: ConfigService<NodeJS.ProcessEnv>) => ({
                 secret: configService.get('JWT_SECRET'),
                 signOptions: {
                     expiresIn: configService.get('EXPIRATION_TIME'),

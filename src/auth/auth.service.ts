@@ -16,7 +16,7 @@ export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
-        private readonly configService: ConfigService,
+        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
     ) {}
 
     async validateUser(username: string, password: string): Promise<Omit<UserEntity, 'password'> | null> {
