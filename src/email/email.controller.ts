@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { ApiUserEntityResponse } from '@/users/users.swagger';
 
 import { ConfirmEmailDto } from './dto/confirm-email.dto';
+import { EqualEmailsGuard } from './guards/equal-emails.guard';
 import { EmailService } from './email.service';
 
 @ApiTags('email')
@@ -16,6 +17,7 @@ export class EmailController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @Post('confirm')
+    @UseGuards(EqualEmailsGuard)
     confirmEmail(@Body() dto: ConfirmEmailDto) {
         return this.emailService.confirmEmail(dto);
     }

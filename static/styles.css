@@ -112,20 +112,19 @@ section.rooms {
 
 .room-tab.active {
     background: #7957d5;
-    color: #ffffff;
 }
 
 .room-tab:hover {
     background: #543e92;
-    color: #ffffff;
 }
 
-.room-tab h5 {
-    margin: 0 0 8px;
+.room-tab.active .title,
+.room-tab:hover .title {
+    color: #ffffff !important;
 }
 
-.room-tab p {
-    margin: 0;
+.room-tab .title {
+    margin: 0 !important;
 }
 
 .new-room-form {

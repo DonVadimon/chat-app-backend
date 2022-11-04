@@ -59,6 +59,8 @@ export class ApiChatRoomEntityResponse implements ChatRoomEntity {
     createdAt: Date;
     @ApiProperty()
     updatedAt: Date;
+    @ApiProperty({ type: ApiChatMessageEntityDetailsResponse, isArray: true })
+    messages?: ApiChatMessageEntityDetailsResponse[];
 }
 
 export class ApiChatRoomEntityDetailsResponse extends ApiChatRoomEntityResponse implements ChatRoomDetails {

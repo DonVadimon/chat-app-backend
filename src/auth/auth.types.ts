@@ -1,4 +1,5 @@
 import { UserEntity } from '@prisma/client';
+import { Request } from 'express';
 import { Socket } from 'socket.io';
 
 export type ValidationPayload = {

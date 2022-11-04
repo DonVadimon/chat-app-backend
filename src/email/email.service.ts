@@ -24,7 +24,7 @@ export class EmailService {
 
     private getConfirmEmailUrl(jwtToken: string) {
         const url = new URL(this.configService.get('MAIL_CONFIRM_URL'));
-        url.searchParams.append('token', jwtToken);
+        url.searchParams.append('confirmEmailToken', jwtToken);
         return url.toString();
     }
 
@@ -52,8 +52,8 @@ export class EmailService {
                     subject: 'Подтверждение регистрации',
                     template: 'confirm-email',
                     context: {
-                        username: user.username,
                         confirmUrl: this.getConfirmEmailUrl(jwtToken),
+                        expirationTime: Date.now() + Number(this.configService.get('MAIL_EXPIRATION_TIME')),
                     },
                 })
                 .catch((error) => {

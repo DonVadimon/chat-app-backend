@@ -1,7 +1,3 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { EmailTokenDto } from './email-token.dto';
 
-export class ConfirmEmailDto {
-    @IsString()
-    @IsNotEmpty()
-    token: string;
-}
+export class ConfirmEmailDto extends EmailTokenDto {}

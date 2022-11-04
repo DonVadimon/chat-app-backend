@@ -99,8 +99,11 @@
                         :key="room.id"
                         @click="handleRoomChange(room.id)"
                     >
-                        <h5 v-if="!!room.name">{{ room.name }}</h5>
-                        <p>{{ room.description }}</p>
+                        <p v-if="!!room.name" class="title is-4">{{ room.name }}</p>
+                        <p v-if="!!room.description" class="title is-5">{{ room.description }}</p>
+                        <span v-if="!!room.lastMessage" class="title is-6">
+                            {{ room.lastMessage.author?.username }} - {{ room.lastMessage?.content }}
+                        </span>
                     </div>
                 </section>
                 <section class="alerts custom-scrollbar">

@@ -61,8 +61,6 @@ const TO_CLIENT_EVENTS = {
 
 class Fetcher {
     _send(url, method, body) {
-        console.log({ body });
-
         return fetch(url, {
             method,
             body: body ? JSON.stringify(body) : undefined,
@@ -145,6 +143,9 @@ var app = new Vue({
         },
         receiveChatMessage(message) {
             this.messages[message.chatRoomEntityId] ??= [];
+            this.rooms = this.rooms.map((room) =>
+                room.id === message.chatRoomEntityId ? Object.assign(room, { lastMessage: message }) : room,
+            );
             this.messages[message.chatRoomEntityId].push(message);
             // ? sleep because new message element not inserted in dom yet
             sleep(500).then(() => {
@@ -177,22 +178,7 @@ var app = new Vue({
                 this.rooms.push(room);
             }
         },
-        handleAlertDismiss(index) {
-            this.alerts.splice(index, 1);
-        },
-        handleInfoAlert(message) {
-            this.alerts.push({
-                type: 'Info',
-                color: '#2ecc71',
-                dismissable: true,
-                message,
-            });
-        },
-        handleErrorAlert(message) {
-            this.alerts.push({
-                message,
-            });
-        },
+        // ? Auth
         openLogin() {
             this.isLoginModalOpened = true;
         },
@@ -209,26 +195,10 @@ var app = new Vue({
         },
         resendConfirmation() {
             if (this.user.isEmailConfirmed) {
-                return this.$buefy.dialog.alert({
-                    title: 'Error',
-                    message: `Email <b>${this.user.email}</b> already confirmed`,
-                    type: 'is-danger',
-                    hasIcon: true,
-                    icon: 'times-circle',
-                    iconPack: 'fa',
-                    ariaRole: 'alertdialog',
-                    ariaModal: true,
-                });
+                return this.displayErrorDialog('Error', `Email <b>${this.user.email}</b> already confirmed`);
             }
             return fetcher.post(createApiUrl('email/resend-confirmation')).then(() => {
-                console.log('hui');
-
-                this.$buefy.dialog.alert({
-                    title: 'Done',
-                    message: `We have sent you an email to <b>${this.user.email}</b>`,
-                    type: 'is-info',
-                    ariaModal: true,
-                });
+                this.displayInfoDialog('Email sent', `We have sent you an email to <b>${this.user.email}</b>`);
             });
         },
         async loginAndInit() {
@@ -248,6 +218,44 @@ var app = new Vue({
         logout() {
             return fetcher.post('auth/logout');
         },
+        // ? Alerts
+        displayErrorDialog(title, message) {
+            return this.$buefy.dialog.alert({
+                title,
+                message,
+                type: 'is-danger',
+                hasIcon: true,
+                icon: 'times-circle',
+                iconPack: 'fa',
+                ariaRole: 'alertdialog',
+                ariaModal: true,
+            });
+        },
+        displayInfoDialog(title, message) {
+            return this.$buefy.dialog.alert({
+                title,
+                message,
+                type: 'is-info',
+                ariaModal: true,
+            });
+        },
+        // ? Notifications
+        handleAlertDismiss(index) {
+            this.alerts.splice(index, 1);
+        },
+        handleInfoAlert(message) {
+            this.alerts.push({
+                type: 'Info',
+                color: '#2ecc71',
+                dismissable: true,
+                message,
+            });
+        },
+        handleErrorAlert(message) {
+            this.alerts.push({
+                message,
+            });
+        },
     },
     computed: {
         activeRoom() {
@@ -266,21 +274,24 @@ var app = new Vue({
     async created() {
         this.user = await fetcher.get(createApiUrl('users/self')).catch(this.openLogin);
 
-        const confirmEmailToken = new URLSearchParams(window.location.search).get('token');
+        const confirmEmailToken = new URLSearchParams(window.location.search).get('confirmEmailToken');
 
         if (confirmEmailToken) {
-            this.user = await fetcher
-                .post(createApiUrl('email/confirm'), {
+            try {
+                this.user = await fetcher.post(createApiUrl('email/confirm'), {
                     token: confirmEmailToken,
-                })
-                .catch(console.error);
+                });
+                this.displayInfoDialog('Done', 'Your email was confirmed!');
+            } catch (error) {
+                this.displayErrorDialog('Error', `Confirmation went wrong <p>${error.message}</p>`);
+            }
         }
 
         // ? sockets
         this.socket.chat = io('/chat');
 
         this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_CONNECTED, ({ rooms }) => {
-            this.rooms = rooms;
+            this.rooms = rooms.map((room) => Object.assign(room, { lastMessage: room.messages[0] }));
             this.activeRoomId = this.rooms[0]?.id;
         });
 

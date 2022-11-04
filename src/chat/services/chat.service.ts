@@ -21,6 +21,23 @@ export class ChatService {
                     },
                 },
             },
+            include: {
+                messages: {
+                    take: 1,
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
 

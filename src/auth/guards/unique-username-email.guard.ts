@@ -11,7 +11,7 @@ export class UniqueUsernameEmailGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
-            const dto: CreateUserDto = await context.switchToHttp().getRequest<Request>().body;
+            const dto: CreateUserDto = context.switchToHttp().getRequest<Request>().body;
 
             const [userByUsername, userByEmail] = await this.prismaService.$transaction([
                 this.usersService.getByUsername(dto.username),
