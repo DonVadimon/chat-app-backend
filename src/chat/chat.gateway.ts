@@ -33,6 +33,7 @@ import { joinLeaveRoomIdExtractor } from './chat.utils';
     namespace: '/chat',
     cors: {
         origin: CORS_ORIGINS,
+        credentials: true,
     },
 })
 @UseGuards(WsJwtAuthGuard)

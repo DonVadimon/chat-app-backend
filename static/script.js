@@ -276,7 +276,7 @@ var app = new Vue({
 
         const confirmEmailToken = new URLSearchParams(window.location.search).get('confirmEmailToken');
 
-        if (confirmEmailToken) {
+        if (confirmEmailToken && !this.user.isEmailConfirmed) {
             try {
                 this.user = await fetcher.post(createApiUrl('email/confirm'), {
                     token: confirmEmailToken,

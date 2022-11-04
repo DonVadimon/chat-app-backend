@@ -36,13 +36,17 @@
                         </b-navbar-item>
                     </template>
                     <template #end>
-                        <b-navbar-item tag="div">
+                        <b-navbar-item tag="div" v-if="!user.isEmailConfirmed">
                             <b-button
                                 label="Confirm Email"
                                 type="is-primary is-light"
                                 size="is-medium"
                                 @click="resendConfirmation()"
                             />
+                        </b-navbar-item>
+
+                        <b-navbar-item tag="div" v-if="user.isEmailConfirmed">
+                            <p>Email confirmed</p>
                         </b-navbar-item>
 
                         <b-navbar-item tag="div" v-if="!user?.id">

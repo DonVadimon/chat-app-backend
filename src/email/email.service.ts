@@ -22,8 +22,8 @@ export class EmailService {
 
     private logger: Logger = new Logger('EmailService');
 
-    private getConfirmEmailUrl(jwtToken: string) {
-        const url = new URL(this.configService.get('MAIL_CONFIRM_URL'));
+    private getConfirmEmailUrl(jwtToken: string, basePath?: string) {
+        const url = new URL(basePath ?? this.configService.get('MAIL_CONFIRM_URL'));
         url.searchParams.append('confirmEmailToken', jwtToken);
         return url.toString();
     }
@@ -53,7 +53,11 @@ export class EmailService {
                     template: 'confirm-email',
                     context: {
                         confirmUrl: this.getConfirmEmailUrl(jwtToken),
-                        expirationTime: Date.now() + Number(this.configService.get('MAIL_EXPIRATION_TIME')),
+                        // ? extra dev links
+                        frontLocalUrl: this.getConfirmEmailUrl(jwtToken, 'http://localhost:8100'),
+                        frontProdUrl: this.getConfirmEmailUrl(jwtToken, 'https://chat-app-frontend-two.vercel.app'),
+                        backLocalUrl: this.getConfirmEmailUrl(jwtToken, 'http://localhost:3003'),
+                        backProdUrl: this.getConfirmEmailUrl(jwtToken, 'https://don-vadimon.online'),
                     },
                 })
                 .catch((error) => {
