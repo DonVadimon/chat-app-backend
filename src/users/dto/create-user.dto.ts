@@ -19,10 +19,9 @@ export class CreateUserDto implements Prisma.UserEntityCreateInput {
     name: string;
 
     @ApiProperty()
-    @IsOptional()
     @IsNotEmpty()
     @IsEmail()
-    email?: string;
+    email: string;
 
     @ApiProperty()
     @IsOptional()

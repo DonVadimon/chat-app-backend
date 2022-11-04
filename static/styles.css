@@ -1,3 +1,7 @@
+:root {
+    --nav-h: 78px;
+}
+
 body {
     box-sizing: border-box;
     margin: 0;
@@ -6,8 +10,17 @@ body {
     overflow: hidden;
 }
 
-main {
+#v-app {
+    width: 100%;
     height: 100%;
+}
+
+.navbar {
+    height: var(--nav-h);
+}
+
+main {
+    height: calc(100% - var(--nav-h));
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas: 'chat rooms alerts';
@@ -16,37 +29,40 @@ main {
 main section {
     overflow: auto;
     height: 100%;
+    padding: 0 8px;
 }
 
 section.chat {
     scroll-behavior: smooth;
     grid-area: chat;
     position: relative;
-}
-
-.messages {
     display: flex;
     flex-direction: column;
 }
 
-.message {
-    width: 80%;
-    align-self: flex-start;
-    margin: 8px;
-    display: inline-flex;
+.chat-messages {
+    display: flex;
     flex-direction: column;
-    font-size: 1.6em;
+    flex-grow: 1;
 }
 
-.message.self {
+.chat-message {
+    display: inline-flex !important;
+    flex-direction: column;
+    align-self: flex-start;
+    width: 80%;
+    margin: 8px;
+}
+
+.chat-message.self {
     align-self: flex-end;
 }
 
-.message strong {
+.chat-message strong {
     font-size: 0.8em;
 }
 
-.message i {
+.chat-message i {
     font-size: 0.6em;
 }
 
@@ -69,13 +85,12 @@ section.chat {
     left: 0;
     width: 100%;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
+    padding: 24px 0 12px 0;
     background: white;
 }
 
-.chat .chat-form input {
+.chat .chat-form .field {
     flex-grow: 1;
     margin-right: 12px;
 }
@@ -87,21 +102,22 @@ section.rooms {
 .room-tab {
     display: flex;
     flex-direction: column;
-    color: rgb(3, 40, 40);
     background: rgb(147, 208, 208);
     padding: 12px;
     border-radius: 16px;
     margin-bottom: 24px;
     cursor: pointer;
-}
-
-.room-tab:hover {
-    background: rgb(77, 155, 155);
+    transition: all linear 0.3s;
 }
 
 .room-tab.active {
-    color: rgb(191, 214, 214);
-    background: teal;
+    background: #7957d5;
+    color: #ffffff;
+}
+
+.room-tab:hover {
+    background: #543e92;
+    color: #ffffff;
 }
 
 .room-tab h5 {

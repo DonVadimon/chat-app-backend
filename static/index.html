@@ -6,54 +6,153 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>Websockets Client</title>
         <link href="/styles.css" rel="stylesheet" />
-        <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+        <!-- vue -->
+        <script src="https://unpkg.com/vue@2"></script>
+
+        <!-- notify -->
         <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
+        <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet" />
+
+        <!-- buefy -->
+        <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css" />
+        <!-- icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css" />
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
+
         <script src="/socket.io/socket.io.js"></script>
     </head>
     <body>
-        <main id="v-app">
-            <section class="chat custom-scrollbar">
-                <div class="chat-top">
-                    <h1>Websockets Tester</h1>
-                    <h2>{{ user.username }}</h2>
-                </div>
-                <div class="messages">
-                    <div
-                        v-for="msg in activeMessages"
-                        :key="msg.id"
-                        class="message"
-                        :class="{ self: msg.author.username === user.username }"
-                    >
-                        <strong>{{ msg.author.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
+        <div id="v-app">
+            <template>
+                <b-navbar class="navbar">
+                    <template #start>
+                        <b-navbar-item tag="div">
+                            <b-image rounded src="https://avatars.githubusercontent.com/u/67438684?v=4" />
+                        </b-navbar-item>
+                        <b-navbar-item tag="div">
+                            <h1 class="title">DonVadimon Chat</h1>
+                        </b-navbar-item>
+                    </template>
+                    <template #end>
+                        <b-navbar-item tag="div">
+                            <b-button
+                                label="Confirm Email"
+                                type="is-primary is-light"
+                                size="is-medium"
+                                @click="resendConfirmation()"
+                            />
+                        </b-navbar-item>
+
+                        <b-navbar-item tag="div" v-if="!user?.id">
+                            <b-button label="Login" type="is-primary" size="is-medium" @click="openLogin()" />
+                        </b-navbar-item>
+
+                        <b-navbar-item tag="div" v-if="user?.id">
+                            <b-button label="Logout" type="is-primary is-light" size="is-medium" @click="logout()" />
+                        </b-navbar-item>
+                    </template>
+                </b-navbar>
+            </template>
+
+            <main>
+                <section class="chat custom-scrollbar">
+                    <div class="chat-top">
+                        <h2 class="title">{{ user?.username }}</h2>
                     </div>
-                </div>
-                <form class="chat-form">
-                    <input v-model="text" type="text" />
-                    <button type="submit" @click.prevent="sendChatMessage()">Send</button>
+                    <div class="chat-messages">
+                        <div
+                            v-for="msg in activeMessages"
+                            :key="msg.id"
+                            class="box chat-message"
+                            :class="{ self: msg.author?.username === user?.username }"
+                        >
+                            <strong>{{ msg.author?.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
+                        </div>
+                    </div>
+                    <form class="chat-form">
+                        <b-field label="Message" label-position="on-border">
+                            <b-input v-model="text" />
+                        </b-field>
+                        <b-button native-type="submit" type="is-primary" @click.prevent="sendChatMessage()">
+                            Send
+                        </b-button>
+                    </form>
+                </section>
+                <section class="rooms custom-scrollbar">
+                    <form class="new-room-form">
+                        <b-field label="New Room Name">
+                            <b-input v-model="newRoomName" placeholder="New Room Name" />
+                        </b-field>
+                        <b-field label="New Room Description">
+                            <b-input v-model="newRoomDescription" placeholder="New Room Description" />
+                        </b-field>
+                        <b-button native-type="submit" type="is-primary is-light" @click.prevent="createNewRoom()">
+                            Create New Room
+                        </b-button>
+                    </form>
+                    <div
+                        class="box room-tab"
+                        :class="{ active: activeRoomId === room.id }"
+                        v-for="room in rooms"
+                        :key="room.id"
+                        @click="handleRoomChange(room.id)"
+                    >
+                        <h5 v-if="!!room.name">{{ room.name }}</h5>
+                        <p>{{ room.description }}</p>
+                    </div>
+                </section>
+                <section class="alerts custom-scrollbar">
+                    <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
+                </section>
+            </main>
+
+            <b-modal
+                v-model="isLoginModalOpened"
+                has-modal-card
+                trap-focus
+                :destroy-on-hide="false"
+                aria-role="dialog"
+                aria-label="Login Modal"
+                close-button-aria-label="Close"
+                aria-modal
+            >
+                <form action="">
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">Login</p>
+                        </header>
+                        <section class="modal-card-body">
+                            <b-field label="Username">
+                                <b-input type="username" v-model="username" placeholder="Your username" required>
+                                </b-input>
+                            </b-field>
+
+                            <b-field label="Password">
+                                <b-input
+                                    type="password"
+                                    v-model="password"
+                                    password-reveal
+                                    placeholder="Your password"
+                                    required
+                                >
+                                </b-input>
+                            </b-field>
+                        </section>
+                        <footer class="modal-card-foot">
+                            <b-button
+                                native-type="submit"
+                                label="Login"
+                                type="is-primary"
+                                @click.prevent="loginAndInit()"
+                            />
+                        </footer>
+                    </div>
                 </form>
-            </section>
-            <section class="rooms custom-scrollbar">
-                <form class="new-room-form">
-                    <input v-model="newRoomName" type="text" placeholder="New Room Name" />
-                    <input v-model="newRoomDescription" type="text" placeholder="New Room Description" />
-                    <button type="submit" @click.prevent="createNewRoom()">Create New Room</button>
-                </form>
-                <div
-                    class="room-tab"
-                    :class="{ active: activeRoomId === room.id }"
-                    v-for="room in rooms"
-                    :key="room.id"
-                    @click="handleRoomChange(room.id)"
-                >
-                    <h5 v-if="!!room.name">{{ room.name }}</h5>
-                    <p>{{ room.description }}</p>
-                </div>
-            </section>
-            <section class="alerts custom-scrollbar">
-                <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
-            </section>
-        </main>
+            </b-modal>
+        </div>
+
         <script src="./script.js"></script>
     </body>
 </html>

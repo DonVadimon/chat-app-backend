@@ -6,7 +6,6 @@ import { RequestWithUser } from '@/auth/auth.types';
 import { RolesGuard } from '@/auth/guards/roles.guard';
 
 import { CheckUsernameAvailableDto } from './dto/check-username-available.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { ApiCheckUsernameAvailableResponse, ApiUserEntityResponse } from './users.swagger';

@@ -12,18 +12,18 @@ datasource db {
 
 model UserEntity {
     // ? required fields
-    id              Int                      @id @default(autoincrement())
-    username        String                   @unique
-    password        String
-    name            String
-    roles           UserRoles[]
-    rooms           ChatRoomEntity[]
-    messages        ChatMessageEntity[]
-    chatPermissions ChatPermissionsEntity[]
-    // ? optional fields
-    email           String?                  @unique
+    id               Int                      @id @default(autoincrement())
+    username         String                   @unique
+    password         String
+    name             String
+    roles            UserRoles[]
+    rooms            ChatRoomEntity[]
+    messages         ChatMessageEntity[]
+    chatPermissions  ChatPermissionsEntity[]
+    email            String                   @unique
+    isEmailConfirmed Boolean                  @default(false)
     // ? search
-    textSearch      Unsupported("TSVECTOR")?
+    textSearch       Unsupported("TSVECTOR")?
 
     @@index([textSearch])
 }

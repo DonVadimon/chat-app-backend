@@ -1,22 +1,24 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserEntity } from '@prisma/client';
+import { UserEntity, UserRoles } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Socket } from 'socket.io';
 
+import { EmailService } from '@/email/email.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
 import { parseCookieString } from '@/utils/parse-cookie-string';
 
-import { UserInReq, ValidationPayload } from './auth.types';
+import { ValidationPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
+        private readonly emailService: EmailService,
     ) {}
 
     async validateUser(username: string, password: string): Promise<Omit<UserEntity, 'password'> | null> {
@@ -33,13 +35,19 @@ export class AuthService {
         }
     }
 
-    registerUser(dto: CreateUserDto) {
-        return this.usersService.createUser(dto);
+    async registerUser(dto: CreateUserDto) {
+        dto.roles = [UserRoles.REGULAR];
+
+        const user = await this.usersService.createUser(dto);
+
+        await this.emailService.sendConfirmEmailMessage(user);
+
+        return user;
     }
 
-    async generateJwtToken({ id, username }: UserInReq) {
-        const payload: ValidationPayload = { username, id };
-        return this.jwtService.sign(payload);
+    generateJwtToken({ id, username }: ValidationPayload) {
+        const payload = { username, id };
+        return this.jwtService.signAsync(payload);
     }
 
     verifyJwtToken(jwtToken: string) {

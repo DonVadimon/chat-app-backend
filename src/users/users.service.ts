@@ -18,17 +18,24 @@ export class UsersService {
         return users;
     }
 
-    async getByUsername(username: string): Promise<UserEntity | undefined> {
-        const user = await this.prisma.userEntity.findFirst({
+    getByUsername(username: string) {
+        return this.prisma.userEntity.findFirst({
             where: {
-                username,
+                username: username || '',
             },
         });
-        return user;
+    }
+
+    getByEmail(email: string) {
+        return this.prisma.userEntity.findFirst({
+            where: {
+                email: email || '',
+            },
+        });
     }
 
     async getById(id: number): Promise<Omit<UserEntity, 'password'> | undefined> {
-        const user = await this.prisma.userEntity.findFirst({
+        return this.prisma.userEntity.findFirst({
             where: {
                 id,
             },
@@ -38,16 +45,12 @@ export class UsersService {
                 name: true,
                 roles: true,
                 username: true,
+                isEmailConfirmed: true,
             },
         });
-        return user;
     }
 
     async createUser({ password, ...rest }: CreateUserDto): Promise<UserEntity> {
-        const findedUser = await this.getByUsername(rest.username);
-        if (findedUser) {
-            throw new Error('User with that username already exists');
-        }
         const hashedPassword = await bcrypt.hash(password, 10);
         const dto = {
             ...rest,
@@ -70,8 +73,22 @@ export class UsersService {
         return user;
     }
 
+    async markUserEmailAsConfirmed(email: string) {
+        const user = await this.prisma.userEntity.update({
+            data: {
+                isEmailConfirmed: true,
+            },
+            where: {
+                email: email || '',
+            },
+        });
+
+        user.password = undefined;
+        return user;
+    }
+
     async deleteUser(dto: DeleteUserDto): Promise<UserEntity> {
-        return await this.prisma.userEntity.delete({
+        return this.prisma.userEntity.delete({
             where: dto,
         });
     }

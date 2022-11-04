@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
+import { EmailModule } from '@/email/email.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { UsersModule } from '@/users/users.module';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -13,6 +15,8 @@ import { AuthService } from './auth.service';
 @Module({
     imports: [
         UsersModule,
+        PrismaModule,
+        EmailModule,
         PassportModule,
         ConfigModule,
         JwtModule.registerAsync({

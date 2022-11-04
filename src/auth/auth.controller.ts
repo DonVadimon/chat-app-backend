@@ -9,6 +9,7 @@ import { ApiUserEntityResponse } from '@/users/users.swagger';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { UniqueUsernameEmailGuard } from './guards/unique-username-email.guard';
 import { AuthService } from './auth.service';
 import { RequestWithUser } from './auth.types';
 
@@ -37,6 +38,7 @@ export class AuthController {
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
+    @UseGuards(UniqueUsernameEmailGuard)
     @Post('register')
     async register(@Body() dto: CreateUserDto, @Res() response: Response) {
         const user = await this.authService.registerUser(dto);
@@ -71,6 +73,8 @@ export class AuthController {
             maxAge,
             httpOnly: true,
             path: '/',
+            sameSite: 'none',
+            secure: true,
         };
     }
 }

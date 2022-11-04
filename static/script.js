@@ -59,9 +59,54 @@ const TO_CLIENT_EVENTS = {
 //     GROUP: 'GROUP',
 // };
 
+class Fetcher {
+    _send(url, method, body) {
+        console.log({ body });
+
+        return fetch(url, {
+            method,
+            body: body ? JSON.stringify(body) : undefined,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then((response) => {
+                const contentType = response.headers.get('content-type');
+
+                if (contentType?.toLowerCase().indexOf('application/json') !== -1) {
+                    return response.json().then((data) => ({ status: response.status, data }));
+                } else {
+                    return response.text().then((data) => ({ status: response.status, data }));
+                }
+            })
+            .then(({ status, data }) => {
+                if (status < 200 || status >= 300) {
+                    throw data;
+                } else {
+                    return data;
+                }
+            })
+            .catch((error) => {
+                console.error(`Error when fetching ${url}`, error);
+                throw error;
+            });
+    }
+
+    get(url) {
+        return this._send(url, 'GET');
+    }
+
+    post(url, body) {
+        return this._send(url, 'POST', body);
+    }
+}
+
+const fetcher = new Fetcher();
+
 const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/${url}`;
 
 Vue.component('alerts-component', VueSimpleNotify.VueSimpleNotify);
+Vue.use(Buefy);
 var app = new Vue({
     el: '#v-app',
     data: {
@@ -78,6 +123,10 @@ var app = new Vue({
         activeRoomId: 0,
         socket: { chat: null },
         alerts: [],
+
+        isLoginModalOpened: false,
+        username: '',
+        password: '',
     },
     methods: {
         getChatContainer() {
@@ -144,6 +193,61 @@ var app = new Vue({
                 message,
             });
         },
+        openLogin() {
+            this.isLoginModalOpened = true;
+        },
+        closeLogin() {
+            this.isLoginModalOpened = false;
+        },
+        fetchUser(username, password) {
+            return fetcher
+                .post(createApiUrl('auth/login'), {
+                    username,
+                    password,
+                })
+                .catch(console.error);
+        },
+        resendConfirmation() {
+            if (this.user.isEmailConfirmed) {
+                return this.$buefy.dialog.alert({
+                    title: 'Error',
+                    message: `Email <b>${this.user.email}</b> already confirmed`,
+                    type: 'is-danger',
+                    hasIcon: true,
+                    icon: 'times-circle',
+                    iconPack: 'fa',
+                    ariaRole: 'alertdialog',
+                    ariaModal: true,
+                });
+            }
+            return fetcher.post(createApiUrl('email/resend-confirmation')).then(() => {
+                console.log('hui');
+
+                this.$buefy.dialog.alert({
+                    title: 'Done',
+                    message: `We have sent you an email to <b>${this.user.email}</b>`,
+                    type: 'is-info',
+                    ariaModal: true,
+                });
+            });
+        },
+        async loginAndInit() {
+            this.user = await fetcher
+                .post(createApiUrl('auth/login'), {
+                    username: this.username,
+                    password: this.password,
+                })
+                .catch(console.error);
+
+            this.rooms = await fetcher.get(createApiUrl('chat/self-rooms'));
+
+            this.activeRoomId = this.rooms[0]?.id;
+
+            this.closeLogin();
+        },
+        logout() {
+            return fetcher.post('auth/logout');
+        },
     },
     computed: {
         activeRoom() {
@@ -152,28 +256,25 @@ var app = new Vue({
     },
     watch: {
         async activeRoomId(activeRoomId) {
-            const { id, messages } = await fetch(createApiUrl(`chat/room/${activeRoomId}`))
-                .then((data) => data.json())
-                .catch(console.error);
-            this.messages = Object.assign(this.messages, { [id]: messages });
-            this.activeMessages = this.messages[this.activeRoomId] ?? [];
+            if (activeRoomId) {
+                const { id, messages } = await fetcher.get(`chat/room/${activeRoomId}`).catch(console.error);
+                this.messages = Object.assign(this.messages, { [id]: messages });
+                this.activeMessages = this.messages[this.activeRoomId] ?? [];
+            }
         },
     },
     async created() {
-        const username = prompt('admin or regular');
+        this.user = await fetcher.get(createApiUrl('users/self')).catch(this.openLogin);
 
-        this.user = await fetch(createApiUrl('auth/login'), {
-            method: 'POST',
-            body: JSON.stringify({
-                username,
-                password: username === 'admin' ? 'admin' : 'regular',
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((data) => data.json())
-            .catch(console.error);
+        const confirmEmailToken = new URLSearchParams(window.location.search).get('token');
+
+        if (confirmEmailToken) {
+            this.user = await fetcher
+                .post(createApiUrl('email/confirm'), {
+                    token: confirmEmailToken,
+                })
+                .catch(console.error);
+        }
 
         // ? sockets
         this.socket.chat = io('/chat');

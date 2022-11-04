@@ -14,6 +14,8 @@ export class ApiUserEntityResponse implements UserEntity {
     roles: UserRoles[];
     @ApiPropertyOptional()
     email: string;
+    @ApiProperty()
+    isEmailConfirmed: boolean;
 }
 
 export class ApiCheckUsernameAvailableResponse {

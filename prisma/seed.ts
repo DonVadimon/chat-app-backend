@@ -12,6 +12,7 @@ const userData: Prisma.UserEntityCreateInput[] = [
         password: ADMIN_USERNAME,
         name: ADMIN_USERNAME,
         email: 'admin@admin.com',
+        isEmailConfirmed: true,
         roles: [UserRoles.REGULAR, UserRoles.ADMIN],
     },
     {
@@ -19,6 +20,7 @@ const userData: Prisma.UserEntityCreateInput[] = [
         password: REGULAR_USERNAME,
         name: REGULAR_USERNAME,
         email: 'regular@regular.com',
+        isEmailConfirmed: true,
         roles: [UserRoles.REGULAR],
     },
 ];
