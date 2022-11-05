@@ -6,13 +6,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 
+import { PrismaModule } from '@/prisma/prisma.module';
 import { UsersModule } from '@/users/users.module';
 
+import { EmailService } from './services/email.service';
+import { EmailUtilsService } from './services/email.utils.service';
 import { EmailController } from './email.controller';
-import { EmailService } from './email.service';
 
 @Module({
     imports: [
+        PrismaModule,
         UsersModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -49,7 +52,7 @@ import { EmailService } from './email.service';
         }),
     ],
     exports: [EmailService],
-    providers: [EmailService],
+    providers: [EmailService, EmailUtilsService],
     controllers: [EmailController],
 })
 export class EmailModule {}

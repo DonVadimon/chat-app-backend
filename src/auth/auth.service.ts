@@ -1,15 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { UserEntity, UserRoles } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Socket } from 'socket.io';
 
-import { EmailService } from '@/email/email.service';
+import { EmailService } from '@/email/services/email.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
 import { parseCookieString } from '@/utils/parse-cookie-string';
 
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { ValidationPayload } from './auth.types';
 
 @Injectable()
@@ -45,9 +46,13 @@ export class AuthService {
         return user;
     }
 
-    generateJwtToken({ id, username }: ValidationPayload) {
+    changePassword(dto: ChangePasswordDto, userEmail: string) {
+        return this.usersService.changePassword(userEmail, dto.newPassword);
+    }
+
+    generateJwtToken({ id, username }: ValidationPayload, options?: JwtSignOptions) {
         const payload = { username, id };
-        return this.jwtService.signAsync(payload);
+        return this.jwtService.signAsync(payload, options);
     }
 
     verifyJwtToken(jwtToken: string) {

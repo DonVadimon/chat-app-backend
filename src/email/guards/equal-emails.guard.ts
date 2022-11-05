@@ -10,7 +10,7 @@ import { Request } from 'express';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { EmailTokenDto } from '@/email/dto/email-token.dto';
-import { EmailService } from '@/email/email.service';
+import { EmailService } from '@/email/services/email.service';
 import { UsersService } from '@/users/users.service';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class EqualEmailsGuard implements CanActivate {
 
             const currentUser = context.switchToHttp().getRequest<RequestWithUser>().user;
 
-            const confirmingEmail = await this.emailService.decodeEmailConfirmationToken(dto.token);
+            const { email: confirmingEmail } = await this.emailService.decodeEmailToken(dto.token);
 
             const userByEmail = await this.usersService.getByEmail(confirmingEmail);
 
