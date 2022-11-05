@@ -59,6 +59,29 @@ const TO_CLIENT_EVENTS = {
 //     GROUP: 'GROUP',
 // };
 
+class UrlHelper {
+    tokenNames = Object.freeze({
+        confirmEmail: 'confirmEmailToken',
+        forgotPassword: 'forgotPasswordToken',
+    });
+
+    getUrlParameter(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+
+    deleteUrlParameter(name) {
+        try {
+            const url = new URL(window.location);
+            url.searchParams.delete(name);
+            return history.replaceState(history.state, '', url.toString());
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+const urlHelper = new UrlHelper();
+
 class Fetcher {
     _send(url, method, body) {
         return fetch(url, {
@@ -105,6 +128,7 @@ const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${
 
 Vue.component('alerts-component', VueSimpleNotify.VueSimpleNotify);
 Vue.use(Buefy);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var app = new Vue({
     el: '#v-app',
     data: {
@@ -193,14 +217,6 @@ var app = new Vue({
                 })
                 .catch(console.error);
         },
-        resendConfirmation() {
-            if (this.user.isEmailConfirmed) {
-                return this.displayErrorDialog('Error', `Email <b>${this.user.email}</b> already confirmed`);
-            }
-            return fetcher.post(createApiUrl('email/resend-confirmation')).then(() => {
-                this.displayInfoDialog('Email sent', `We have sent you an email to <b>${this.user.email}</b>`);
-            });
-        },
         async loginAndInit() {
             this.user = await fetcher
                 .post(createApiUrl('auth/login'), {
@@ -216,7 +232,77 @@ var app = new Vue({
             this.closeLogin();
         },
         logout() {
+            this.messages = {};
+            this.activeMessages = [];
+            this.rooms = [];
+            this.activeRoomId = 0;
+            this.alerts = [];
             return fetcher.post('auth/logout');
+        },
+        // ? Confirm Email
+        async confirmEmail(token) {
+            try {
+                this.user = await fetcher.post(createApiUrl('email/confirm'), { token });
+                this.displayInfoDialog('Done', 'Your email was confirmed!');
+            } catch (error) {
+                this.displayErrorDialog('Error', `Confirmation went wrong <p>${error.message}</p>`);
+            }
+        },
+        resendConfirmation() {
+            if (this.user.isEmailConfirmed) {
+                return this.displayErrorDialog('Error', `Email <b>${this.user.email}</b> already confirmed`);
+            }
+            return fetcher
+                .post(createApiUrl('email/resend-confirmation'))
+                .then(() => {
+                    this.displayInfoDialog('Email sent', `We have sent you an email to <b>${this.user.email}</b>`);
+                })
+                .catch((error) => this.displayErrorDialog('Error', `Email sent went wrong: ${error.message}`));
+        },
+        // ? Forgot Password
+        forgotPassword() {
+            this.$buefy.dialog.prompt({
+                message: `Enter Your email`,
+                inputAttrs: {
+                    placeholder: 'email@email.com',
+                    type: 'email',
+                },
+                trapFocus: true,
+                onConfirm: (email) =>
+                    fetcher
+                        .post(createApiUrl('email/forgot-password'), { email })
+                        .then(() =>
+                            this.displayInfoDialog('Email sent', `We have sent you an email to <b>${email}</b>`),
+                        )
+                        .catch((error) => this.displayErrorDialog('Error', `Email sent went wrong: ${error.message}`)),
+            });
+        },
+        changePasswordByToken(token) {
+            try {
+                this.$buefy.dialog.prompt({
+                    message: `Enter Your new password`,
+                    inputAttrs: {
+                        placeholder: 'New password',
+                        type: 'password',
+                        minLenght: 3,
+                    },
+                    trapFocus: true,
+                    onConfirm: (newPassword) =>
+                        fetcher
+                            .post(createApiUrl('email/change-password'), { token, newPassword })
+                            .then(() =>
+                                this.displayInfoDialog(
+                                    'Password changed',
+                                    `Your password was changed. Now you can login`,
+                                ),
+                            )
+                            .catch((error) =>
+                                this.displayErrorDialog('Error', `Password change went wrong <p>${error.message}</p>`),
+                            ),
+                });
+            } catch (error) {
+                this.displayErrorDialog('Error', `Password change went wrong <p>${error.message}</p>`);
+            }
         },
         // ? Alerts
         displayErrorDialog(title, message) {
@@ -274,17 +360,18 @@ var app = new Vue({
     async created() {
         this.user = await fetcher.get(createApiUrl('users/self')).catch(this.openLogin);
 
-        const confirmEmailToken = new URLSearchParams(window.location.search).get('confirmEmailToken');
+        const confirmEmailToken = urlHelper.getUrlParameter(urlHelper.tokenNames.confirmEmail);
 
         if (confirmEmailToken && !this.user.isEmailConfirmed) {
-            try {
-                this.user = await fetcher.post(createApiUrl('email/confirm'), {
-                    token: confirmEmailToken,
-                });
-                this.displayInfoDialog('Done', 'Your email was confirmed!');
-            } catch (error) {
-                this.displayErrorDialog('Error', `Confirmation went wrong <p>${error.message}</p>`);
-            }
+            await this.confirmEmail();
+            urlHelper.deleteUrlParameter(urlHelper.tokenNames.confirmEmail);
+        }
+
+        const forgotPasswordToken = urlHelper.getUrlParameter(urlHelper.tokenNames.forgotPassword);
+
+        if (forgotPasswordToken) {
+            await this.changePasswordByToken(forgotPasswordToken);
+            urlHelper.deleteUrlParameter(urlHelper.tokenNames.forgotPassword);
         }
 
         // ? sockets

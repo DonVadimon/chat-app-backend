@@ -19,6 +19,16 @@ declare global {
 
             // ? APP
             APP_PORT: string;
+
+            // ? EMAIL
+            MAIL_TRANSPORT: string;
+            MAIL_FROM_NAME: string;
+            MAIL_JWT_SECRET: string;
+            MAIL_EXPIRATION_TIME: string;
+            MAIL_CONFIRM_URL: string;
+
+            // ? FORGOT PASSWORD
+            MAIL_FORGOT_PASSWORD_URL: string;
         }
 
         interface ProcessEnv extends AppConfig {

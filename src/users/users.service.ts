@@ -87,6 +87,19 @@ export class UsersService {
         return user;
     }
 
+    async changePassword(email: string, newPassword: string) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const updatedUser = await this.prisma.userEntity.update({
+            data: { password: hashedPassword },
+            where: {
+                email: email || '',
+            },
+        });
+
+        updatedUser.password = undefined;
+        return updatedUser;
+    }
+
     async deleteUser(dto: DeleteUserDto): Promise<UserEntity> {
         return this.prisma.userEntity.delete({
             where: dto,

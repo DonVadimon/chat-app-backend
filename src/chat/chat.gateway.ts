@@ -62,13 +62,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             client.join(userRooms.map(({ id }) => this.chatUtilsService.createRoomWsId(id)));
             client.emit(ChatOutgoingEvents.CLIENT_CONNECTED, { rooms: userRooms });
         } catch (error) {
+            this.logger.error(error);
             throw new UnauthorizedWsException();
         }
     }
 
     handleDisconnect(client: SocketWithUser) {
         try {
-            this.usersToSockets.delete(client.data.user.id);
+            this.usersToSockets.delete(client.data.user?.id);
         } catch (error) {
             this.logger.error(error);
         }

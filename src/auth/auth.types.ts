@@ -22,3 +22,5 @@ export type SocketWithUser = Socket & {
 export type RequestWithUser = Request & {
     user: UserInReq;
 };
+
+export type UserIdentificators = Partial<Record<keyof Pick<UserEntity, 'id' | 'email' | 'username'>, string>>;
