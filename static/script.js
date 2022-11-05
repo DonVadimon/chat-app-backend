@@ -365,7 +365,7 @@ var app = new Vue({
         const confirmEmailToken = urlHelper.getUrlParameter(urlHelper.tokenNames.confirmEmail);
 
         if (confirmEmailToken && !this.user.isEmailConfirmed) {
-            await this.confirmEmail();
+            await this.confirmEmail(confirmEmailToken);
             urlHelper.deleteUrlParameter(urlHelper.tokenNames.confirmEmail);
         }
 
