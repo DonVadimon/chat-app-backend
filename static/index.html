@@ -80,7 +80,7 @@
                             <b-input v-model="text" />
                         </b-field>
                         <b-button
-                            disabled="!user.id"
+                            :disabled="!user.id"
                             native-type="submit"
                             type="is-primary"
                             @click.prevent="sendChatMessage()"
@@ -98,7 +98,7 @@
                             <b-input v-model="newRoomDescription" placeholder="New Room Description" />
                         </b-field>
                         <b-button
-                            disabled="!user.id"
+                            :disabled="!user.id || !newRoomName || !newRoomDescription"
                             native-type="submit"
                             type="is-primary is-light"
                             @click.prevent="createNewRoom()"

@@ -183,7 +183,7 @@ var app = new Vue({
         createNewRoom() {
             if (this.newRoomName && this.newRoomDescription) {
                 this.socket.chat.emit(TO_SERVER_EVENTS.NEW_GROUP_ROOM_CREATE, {
-                    members: this.newRoomUsers,
+                    members: Array.from(new Set([...this.newRoomUsers, this.user.id])),
                     name: this.newRoomName,
                     description: this.newRoomDescription,
                 });
@@ -359,6 +359,8 @@ var app = new Vue({
     },
     async created() {
         this.user = await fetcher.get(createApiUrl('users/self')).catch(this.openLogin);
+
+        console.log({ u: this.user.id });
 
         const confirmEmailToken = urlHelper.getUrlParameter(urlHelper.tokenNames.confirmEmail);
 
