@@ -230,6 +230,8 @@ var app = new Vue({
             this.activeRoomId = this.rooms[0]?.id;
 
             this.closeLogin();
+
+            this.initSockets();
         },
         logout() {
             this.messages = {};
@@ -237,6 +239,7 @@ var app = new Vue({
             this.rooms = [];
             this.activeRoomId = 0;
             this.alerts = [];
+            this.user = {};
             return fetcher.post('auth/logout');
         },
         // ? Confirm Email
@@ -342,6 +345,42 @@ var app = new Vue({
                 message,
             });
         },
+        // ? Init sockets
+        initSockets() {
+            if (this.socket.chat) {
+                this.socket.chat = null;
+            }
+
+            this.socket.chat = io('/chat');
+
+            this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_CONNECTED, ({ rooms }) => {
+                this.rooms = rooms.map((room) => Object.assign(room, { lastMessage: room.messages[0] }));
+                this.activeRoomId = this.rooms[0]?.id;
+            });
+
+            this.socket.chat.on(TO_CLIENT_EVENTS.SEND_MESSAGE_TO_CLIENT, (msg) => {
+                this.receiveChatMessage(msg);
+            });
+
+            this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_JOINED_ROOM, (room) => {
+                this.addOrUpdateRoom(room);
+            });
+
+            this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_LEAVED_ROOM, (room) => {
+                this.rooms = this.rooms.filter(({ id }) => id !== room.id);
+                this.activeRoomId = this.rooms[0]?.id;
+            });
+
+            this.socket.chat.on(TO_CLIENT_EVENTS.NEW_ROOM_CREATED, (room) => {
+                this.addOrUpdateRoom(room);
+                this.activeRoomId = room.id;
+            });
+
+            this.socket.chat.on('exception', (error) => {
+                console.error(error);
+                this.handleErrorAlert(JSON.stringify(error));
+            });
+        },
     },
     computed: {
         activeRoom() {
@@ -359,8 +398,7 @@ var app = new Vue({
     },
     async created() {
         this.user = await fetcher.get(createApiUrl('users/self')).catch(this.openLogin);
-
-        console.log({ u: this.user.id });
+        this.user ??= {};
 
         const confirmEmailToken = urlHelper.getUrlParameter(urlHelper.tokenNames.confirmEmail);
 
@@ -377,34 +415,6 @@ var app = new Vue({
         }
 
         // ? sockets
-        this.socket.chat = io('/chat');
-
-        this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_CONNECTED, ({ rooms }) => {
-            this.rooms = rooms.map((room) => Object.assign(room, { lastMessage: room.messages[0] }));
-            this.activeRoomId = this.rooms[0]?.id;
-        });
-
-        this.socket.chat.on(TO_CLIENT_EVENTS.SEND_MESSAGE_TO_CLIENT, (msg) => {
-            this.receiveChatMessage(msg);
-        });
-
-        this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_JOINED_ROOM, (room) => {
-            this.addOrUpdateRoom(room);
-        });
-
-        this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_LEAVED_ROOM, (room) => {
-            this.rooms = this.rooms.filter(({ id }) => id !== room.id);
-            this.activeRoomId = this.rooms[0]?.id;
-        });
-
-        this.socket.chat.on(TO_CLIENT_EVENTS.NEW_ROOM_CREATED, (room) => {
-            this.addOrUpdateRoom(room);
-            this.activeRoomId = room.id;
-        });
-
-        this.socket.chat.on('exception', (error) => {
-            console.error(error);
-            this.handleErrorAlert(JSON.stringify(error));
-        });
+        this.initSockets();
     },
 });

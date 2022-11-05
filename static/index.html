@@ -49,11 +49,11 @@
                             <p>Email confirmed</p>
                         </b-navbar-item>
 
-                        <b-navbar-item tag="div" v-if="!user?.id">
+                        <b-navbar-item tag="div" v-if="!user.id">
                             <b-button label="Login" type="is-primary" size="is-medium" @click="openLogin()" />
                         </b-navbar-item>
 
-                        <b-navbar-item tag="div" v-if="user?.id">
+                        <b-navbar-item tag="div" v-if="user.id">
                             <b-button label="Logout" type="is-primary is-light" size="is-medium" @click="logout()" />
                         </b-navbar-item>
                     </template>
@@ -63,14 +63,14 @@
             <main>
                 <section class="chat custom-scrollbar">
                     <div class="chat-top">
-                        <h2 class="title">{{ user?.username }}</h2>
+                        <h2 class="title">{{ user.username }}</h2>
                     </div>
                     <div class="chat-messages">
                         <div
                             v-for="msg in activeMessages"
                             :key="msg.id"
                             class="box chat-message"
-                            :class="{ self: msg.author?.username === user?.username }"
+                            :class="{ self: msg.author?.username === user.username }"
                         >
                             <strong>{{ msg.author?.username }}:</strong> {{ msg.content }} <i>at {{ msg.createdAt }}</i>
                         </div>
@@ -80,7 +80,7 @@
                             <b-input v-model="text" />
                         </b-field>
                         <b-button
-                            :disabled="!user.id"
+                            :disabled="!user.id || !text"
                             native-type="submit"
                             type="is-primary"
                             @click.prevent="sendChatMessage()"
