@@ -37,6 +37,15 @@ export class ChatService {
                         },
                     },
                 },
+                members: {
+                    select: {
+                        id: true,
+                        username: true,
+                        name: true,
+                    },
+                    // ? limit from above
+                    take: 2,
+                },
             },
         });
     }

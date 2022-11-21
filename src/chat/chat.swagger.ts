@@ -63,9 +63,16 @@ export class ApiChatRoomEntityResponse implements ChatRoomEntity {
     messages?: ApiChatMessageEntityDetailsResponse[];
 }
 
-export class ApiChatRoomEntityDetailsResponse extends ApiChatRoomEntityResponse implements ChatRoomDetails {
-    @ApiProperty({ type: ApiUserEntityResponse, isArray: true })
+export class ApiChatRoomEntityWithMembersResponse extends ApiChatRoomEntityResponse {
+    @ApiProperty({
+        type: ApiUserEntityResponse,
+        isArray: true,
+        description: `Max count of members is 2 to limit it's from above`,
+    })
     members: UserEntity[];
+}
+
+export class ApiChatRoomEntityDetailsResponse extends ApiChatRoomEntityWithMembersResponse implements ChatRoomDetails {
     @ApiProperty({ type: ApiChatMessageEntityDetailsResponse, isArray: true })
     messages: ChatMessageDetails[];
 }
