@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from '@/auth/auth.module';
 import { ChatModule } from '@/chat/chat.module';
+import { FilesModule } from '@/files/files.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { SearchModule } from '@/search/search.module';
 import { UsersModule } from '@/users/users.module';
@@ -20,6 +21,7 @@ import { AppService } from './app.service';
         UsersModule,
         ChatModule,
         SearchModule,
+        FilesModule,
         ConfigModule.forRoot({ isGlobal: true }),
         PrismaModule,
         LoggerModule.forRoot({

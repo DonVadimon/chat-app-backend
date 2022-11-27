@@ -39,3 +39,4 @@ lerna-debug.log*
 
 /database
 /pgadmin
+/static/media

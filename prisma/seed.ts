@@ -1,29 +1,9 @@
-import { ChatRoles, ChatRoomType, Prisma, PrismaClient, UserEntity, UserRoles } from '@prisma/client';
+import { ChatRoles, ChatRoomType, Prisma, PrismaClient, UserEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
+import { ADMIN_USERNAME, REGULAR_USERNAME, userData } from './mock/users.mock';
+
 const prisma = new PrismaClient();
-
-const ADMIN_USERNAME = 'admin';
-const REGULAR_USERNAME = 'regular';
-
-const userData: Prisma.UserEntityCreateInput[] = [
-    {
-        username: ADMIN_USERNAME,
-        password: ADMIN_USERNAME,
-        name: ADMIN_USERNAME,
-        email: 'admin@admin.com',
-        isEmailConfirmed: true,
-        roles: [UserRoles.REGULAR, UserRoles.ADMIN],
-    },
-    {
-        username: REGULAR_USERNAME,
-        password: REGULAR_USERNAME,
-        name: REGULAR_USERNAME,
-        email: 'regular@regular.com',
-        isEmailConfirmed: true,
-        roles: [UserRoles.REGULAR],
-    },
-];
 
 const getChatRoomsData = (adminId: number, regularId: number): Prisma.ChatRoomEntityCreateInput[] => [
     {
