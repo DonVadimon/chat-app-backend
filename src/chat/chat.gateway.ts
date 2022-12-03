@@ -15,6 +15,7 @@ import { SocketWithUser } from '@/auth/auth.types';
 import { UnauthorizedWsException } from '@/auth/exceptions/unauthorized-ws.exception';
 import { WsJwtAuthGuard } from '@/auth/guards/ws-jwt-auth.guard';
 import { CORS_ORIGINS } from '@/constants';
+import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 
 import { CreateChatMessageEventDto } from './dto/create-chat-message-event.dto';
 import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
@@ -46,7 +47,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @WebSocketServer() wss: Server;
 
-    private logger: Logger = new Logger('ChatGateway');
+    private logger: Logger = new Logger(ChatGateway.name);
 
     private usersToSockets: Map<number, string> = new Map();
 
@@ -89,14 +90,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage(ChatIncomingEvents.NEW_GROUP_ROOM_CREATE)
     async handleGroupRoomCreate(client: SocketWithUser, dto: CreateGroupChatRoomDto) {
-        const room = await this.chatService.createGroupRoom(dto, client.data.user.id, true);
+        const room = await this.chatService.createGroupRoom(dto, client.data.user.id);
+        room.members = room.members.map((member) => new UserEntityResponseDto(member));
         this.notifyAboutNewRoomCreate(client, room);
     }
 
     @SubscribeMessage(ChatIncomingEvents.NEW_PRIVATE_ROOM_CREATE)
     @UseGuards(PrivateRoomDoesntExistYetGuard)
     async handlePrivateRoomCreate(client: SocketWithUser, dto: CreatePrivateChatRoomEventDto) {
-        const room = await this.chatService.createPrivateRoom({ ...dto, firstMemberId: client.data.user.id }, true);
+        const room = await this.chatService.createPrivateRoom({ ...dto, firstMemberId: client.data.user.id });
+        room.members = room.members.map((member) => new UserEntityResponseDto(member));
         this.notifyAboutNewRoomCreate(client, room);
     }
 
@@ -106,6 +109,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @UseGuards(PermittedToAddChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomJoin(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.addMemberToGroupRoom(dto);
+        room.members = room.members.map((member) => new UserEntityResponseDto(member));
         client.join(this.chatUtilsService.createRoomWsId(room.id));
         client.emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
         this.wss
@@ -117,6 +121,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @UseGuards(PermittedToDeleteChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomLeave(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.removeMemberFromGroupRoom(dto);
+        room.members = room.members.map((member) => new UserEntityResponseDto(member));
         client.leave(this.chatUtilsService.createRoomWsId(room.id));
         this.wss.in(this.usersToSockets.get(dto.userId)).emit(ChatOutgoingEvents.CLIENT_LEAVED_ROOM, room);
         this.wss

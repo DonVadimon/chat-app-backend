@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ChatRoles, ChatRoomType, Prisma } from '@prisma/client';
 
+import { CreateChatMessageDto } from '@/chat/dto/create-chat-message.dto';
+import { CreateGroupChatRoomDto } from '@/chat/dto/create-group-chat-room.dto';
+import { CreatePrivateChatRoomDto } from '@/chat/dto/create-private-chat-room.dto';
+import { JoinLeaveGroupChatRoomDto } from '@/chat/dto/join-leave-group-chat-room.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-
-import { CreateChatMessageDto } from '../dto/create-chat-message.dto';
-import { CreateGroupChatRoomDto } from '../dto/create-group-chat-room.dto';
-import { CreatePrivateChatRoomDto } from '../dto/create-private-chat-room.dto';
-import { JoinLeaveGroupChatRoomDto } from '../dto/join-leave-group-chat-room.dto';
 
 @Injectable()
 export class ChatService {
@@ -77,7 +76,7 @@ export class ChatService {
         });
     }
 
-    async createPrivateRoom(dto: CreatePrivateChatRoomDto, includeMembers = false) {
+    async createPrivateRoom(dto: CreatePrivateChatRoomDto) {
         return this.prisma.chatRoomEntity.create({
             data: {
                 type: ChatRoomType.PRIVATE,
@@ -102,12 +101,12 @@ export class ChatService {
                 },
             },
             include: {
-                members: includeMembers,
+                members: true,
             },
         });
     }
 
-    createGroupRoom(dto: CreateGroupChatRoomDto, ownerId: number, includeMembers = false) {
+    createGroupRoom(dto: CreateGroupChatRoomDto, ownerId: number) {
         const members = dto.members
             .filter((id) => id !== ownerId)
             .map<Prisma.ChatPermissionsEntityCreateManyChatRoomInput>((memberId) => ({
@@ -134,7 +133,7 @@ export class ChatService {
                 },
             },
             include: {
-                members: includeMembers,
+                members: true,
             },
         });
     }

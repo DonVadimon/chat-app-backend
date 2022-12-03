@@ -29,6 +29,9 @@ declare global {
 
             // ? FORGOT PASSWORD
             MAIL_FORGOT_PASSWORD_URL: string;
+
+            // ? FILES
+            UPLOADED_FILES_DESTINATION: string;
         }
 
         interface ProcessEnv extends AppConfig {

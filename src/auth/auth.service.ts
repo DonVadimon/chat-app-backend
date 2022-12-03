@@ -29,7 +29,7 @@ export class AuthService {
             if (!isPasswordMatching) {
                 throw new HttpException('Wrong credentials provided', HttpStatus.BAD_REQUEST);
             }
-            user.password = undefined;
+
             return user;
         } catch (error) {
             throw new HttpException('Wrong credentials provided', HttpStatus.BAD_REQUEST);
