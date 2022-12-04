@@ -23,14 +23,6 @@ export const userData: Prisma.UserEntityCreateInput[] = [
         roles: [UserRoles.REGULAR],
     },
     // ? more data
-    {
-        username: 'vasya_pupich',
-        password: 'vasya_pupich',
-        name: 'Vasya Pupich',
-        email: 'vasya_pupich@mail.ru',
-        isEmailConfirmed: false,
-        roles: [UserRoles.REGULAR],
-    },
     ...Array.from<unknown, Prisma.UserEntityCreateInput>({ length: 20 }, () => ({
         username: faker.internet.userName(),
         password: 'sanya_lox',
