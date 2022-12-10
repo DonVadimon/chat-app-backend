@@ -1,12 +1,15 @@
 import path from 'path';
 
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from '@/auth/auth.module';
 import { ChatModule } from '@/chat/chat.module';
+import { FilesModule } from '@/files/files.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { SearchModule } from '@/search/search.module';
 import { UsersModule } from '@/users/users.module';
@@ -20,6 +23,8 @@ import { AppService } from './app.service';
         UsersModule,
         ChatModule,
         SearchModule,
+        FilesModule,
+        ScheduleModule.forRoot(),
         ConfigModule.forRoot({ isGlobal: true }),
         PrismaModule,
         LoggerModule.forRoot({
@@ -39,6 +44,12 @@ import { AppService } from './app.service';
         }),
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: ClassSerializerInterceptor,
+        },
+    ],
 })
 export class AppModule {}

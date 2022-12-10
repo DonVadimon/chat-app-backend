@@ -8,22 +8,37 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// ? FILES
+
+model FileEntity {
+    // ? required fields
+    id           Int          @id @default(autoincrement())
+    originalName String
+    path         String
+    // ? timestamps
+    createdAt    DateTime     @default(now())
+    updatedAt    DateTime     @updatedAt
+    UserEntity   UserEntity[]
+}
+
 // ? USERS
 
 model UserEntity {
     // ? required fields
-    id               Int                      @id @default(autoincrement())
-    username         String                   @unique
-    password         String
-    name             String
-    roles            UserRoles[]
-    rooms            ChatRoomEntity[]
-    messages         ChatMessageEntity[]
-    chatPermissions  ChatPermissionsEntity[]
-    email            String                   @unique
-    isEmailConfirmed Boolean                  @default(false)
+    id                 Int                      @id @default(autoincrement())
+    username           String                   @unique
+    password           String
+    name               String
+    roles              UserRoles[]
+    rooms              ChatRoomEntity[]
+    messages           ChatMessageEntity[]
+    chatPermissions    ChatPermissionsEntity[]
+    email              String                   @unique
+    isEmailConfirmed   Boolean                  @default(false)
+    avatar             FileEntity?              @relation(fields: [avatarFileEntityId], references: [id])
+    avatarFileEntityId Int?
     // ? search
-    textSearch       Unsupported("TSVECTOR")?
+    textSearch         Unsupported("TSVECTOR")?
 
     @@index([textSearch])
 }

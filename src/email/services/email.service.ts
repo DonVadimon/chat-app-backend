@@ -19,7 +19,7 @@ export class EmailService {
         private readonly emailUtilsService: EmailUtilsService,
     ) {}
 
-    private logger: Logger = new Logger('EmailService');
+    private logger: Logger = new Logger(EmailService.name);
 
     generateJwtToken(payload: ConfirmEmailPayload) {
         return this.jwtService.signAsync(payload);

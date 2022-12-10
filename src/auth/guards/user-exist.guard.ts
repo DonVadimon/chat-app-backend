@@ -29,7 +29,7 @@ export const UserExistGuard = (findBy: UserIdentificators): Type<CanActivate> =>
     class UserExistGuardMixin {
         constructor(private readonly prismaService: PrismaService) {}
 
-        private logger: Logger = new Logger('UserExistGuard');
+        private logger: Logger = new Logger(UserExistGuard.name);
 
         async canActivate(context: ExecutionContext): Promise<boolean> {
             try {

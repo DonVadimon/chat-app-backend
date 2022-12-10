@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 import { AppService } from './app.service';
 
@@ -7,6 +8,11 @@ import { AppService } from './app.service';
 @Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {}
+
+    @Get()
+    getClient(@Res() response: Response) {
+        response.redirect('/client');
+    }
 
     @Get('hello')
     getHello(): string {

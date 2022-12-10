@@ -5,6 +5,7 @@ import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UserExistGuard } from '@/auth/guards/user-exist.guard';
 import { ChangePasswordDto } from '@/email/dto/change-password.dto';
+import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 import { ApiUserEntityResponse } from '@/users/users.swagger';
 
 import { ConfirmEmailDto } from './dto/confirm-email.dto';
@@ -21,8 +22,8 @@ export class EmailController {
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @Post('confirm')
     @UseGuards(JwtAuthGuard, EqualEmailsGuard)
-    confirmEmail(@Body() dto: ConfirmEmailDto) {
-        return this.emailService.confirmEmail(dto);
+    async confirmEmail(@Body() dto: ConfirmEmailDto) {
+        return new UserEntityResponseDto(await this.emailService.confirmEmail(dto));
     }
 
     @UseGuards(JwtAuthGuard)
