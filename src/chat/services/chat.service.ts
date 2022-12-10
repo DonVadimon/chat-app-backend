@@ -5,6 +5,7 @@ import { CreateChatMessageDto } from '@/chat/dto/create-chat-message.dto';
 import { CreateGroupChatRoomDto } from '@/chat/dto/create-group-chat-room.dto';
 import { CreatePrivateChatRoomDto } from '@/chat/dto/create-private-chat-room.dto';
 import { JoinLeaveGroupChatRoomDto } from '@/chat/dto/join-leave-group-chat-room.dto';
+import { UpdateChatRoomDto } from '@/chat/dto/update-chat-room.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
@@ -216,6 +217,15 @@ export class ChatService {
                     },
                 },
             },
+        });
+    }
+
+    updateRoom({ roomId, ...data }: UpdateChatRoomDto) {
+        return this.prisma.chatRoomEntity.update({
+            where: {
+                id: roomId,
+            },
+            data,
         });
     }
 }

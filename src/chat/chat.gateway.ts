@@ -7,7 +7,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
-import { ChatRoomType } from '@prisma/client';
+import { ChatRoles, ChatRoomType } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
 
 import { AuthService } from '@/auth/auth.service';
@@ -21,6 +21,8 @@ import { CreateChatMessageEventDto } from './dto/create-chat-message-event.dto';
 import { CreateGroupChatRoomDto } from './dto/create-group-chat-room.dto';
 import { CreatePrivateChatRoomEventDto } from './dto/create-private-chat-room-event.dto';
 import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
+import { UpdateChatRoomDto } from './dto/update-chat-room.dto';
+import { ChatPermissionsGuard } from './guards/chat-permissions.guard';
 import { PermittedToAddChatMemberGuard } from './guards/permitted-to-add-chat-member.guard';
 import { PermittedToDeleteChatMemberGuard } from './guards/permitted-to-delete-chat-member.guard';
 import { PrivateRoomDoesntExistYetGuard } from './guards/private-room-doesnt-exist-yet.guard';
@@ -127,6 +129,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.wss
             .to(this.chatUtilsService.createRoomWsId(room.id))
             .emit(ChatOutgoingEvents.MEMBER_EXCLUDED_FROM_GROUP_ROOM, room);
+    }
+
+    // ? UPDATE CHAT ROOM INFO
+    @SubscribeMessage(ChatIncomingEvents.UPDATE_ROOM_ENTITY)
+    @UseGuards(
+        ChatPermissionsGuard<UpdateChatRoomDto>({
+            requiredRoles: [ChatRoles.OWNER],
+            roomIdExtractor: (data) => data.roomId,
+        }),
+    )
+    async handleUpdateChatRoom(client: SocketWithUser, dto: UpdateChatRoomDto) {
+        const room = await this.chatService.updateRoom(dto);
+        this.wss.to(this.chatUtilsService.createRoomWsId(room.id)).emit(ChatOutgoingEvents.ROOM_ENTITY_UPDATED, room);
     }
 
     // ? UTILS
