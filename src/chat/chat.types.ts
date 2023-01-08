@@ -21,6 +21,10 @@ export enum ChatIncomingEvents {
      * Recieve request to create new PRIVATE chat room
      */
     NEW_PRIVATE_ROOM_CREATE = 'CHAT/NEW_PRIVATE_ROOM_CREATE',
+    /**
+     * Recieve request to update chat room info
+     */
+    UPDATE_ROOM_ENTITY = 'CHAT/UPDATE_ROOM_ENTITY',
 }
 
 export enum ChatOutgoingEvents {
@@ -52,6 +56,10 @@ export enum ChatOutgoingEvents {
      * Send cew chat room
      */
     NEW_ROOM_CREATED = 'CHAT/NEW_ROOM_CREATED',
+    /**
+     * Send message with updated chat room
+     */
+    ROOM_ENTITY_UPDATED = 'CHAT/ROOM_ENTITY_UPDATED',
 }
 
 export type ChatRoomWithMembers = ChatRoomEntity & {
@@ -72,3 +80,5 @@ export type ChatRoomDetails = ChatRoomEntity & {
     members: UserEntity[];
     messages: ChatMessageDetails[];
 };
+
+export type RoomIdExtractor<T> = (data: T) => number;

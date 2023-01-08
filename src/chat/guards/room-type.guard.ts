@@ -2,9 +2,8 @@ import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 
+import { RoomIdExtractor } from '@/chat/chat.types';
 import { ChatUtilsService } from '@/chat/services/chat.utils.service';
-
-export type RoomIdExtractor<T> = (data: T) => number;
 
 export const RoomTypeGuard = <T>(
     roomIdExtractor: RoomIdExtractor<T>,
