@@ -8,7 +8,7 @@ import { Socket } from 'socket.io';
 import { EmailService } from '@/email/services/email.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
-import { parseCookieString } from '@/utils/parse-cookie-string';
+import { extractAuthTokenFromHeader } from '@/utils/auth-header';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ValidationPayload } from './auth.types';
@@ -60,7 +60,10 @@ export class AuthService {
     }
 
     async extractUserFromWsClient(client: Socket) {
-        const jwtToken = parseCookieString(client.handshake.headers.cookie)[this.configService.get('AUTH_COOKIE_NAME')];
+        const jwtToken = extractAuthTokenFromHeader(
+            client.handshake.headers[this.configService.get('AUTH_HEADER_NAME')],
+        );
+
         const userInfo = await this.verifyJwtToken(jwtToken);
         const user = await this.usersService.getById(userInfo.id);
         client.data.user = { ...user, password: undefined };

@@ -83,14 +83,30 @@ class UrlHelper {
 const urlHelper = new UrlHelper();
 
 class Fetcher {
+    static AUTH_FILED_NAME = 'authentication';
+    static constructAuthHeaders = () => ({
+        [Fetcher.AUTH_FILED_NAME]: `Bearer ${localStorage.getItem(Fetcher.AUTH_FILED_NAME)}`,
+    });
+
     _send(url, method, body) {
         return fetch(url, {
             method,
             body: body ? JSON.stringify(body) : undefined,
             headers: {
                 'Content-Type': 'application/json',
+                ...Fetcher.constructAuthHeaders(),
             },
         })
+            .then((response) => {
+                if (response.headers.has(Fetcher.AUTH_FILED_NAME)) {
+                    console.warn({ asd: response.headers.get(Fetcher.AUTH_FILED_NAME) });
+                    localStorage.setItem(
+                        Fetcher.AUTH_FILED_NAME,
+                        response.headers.get(Fetcher.AUTH_FILED_NAME).replace('Bearer ', ''),
+                    );
+                }
+                return response;
+            })
             .then((response) => {
                 const contentType = response.headers.get('content-type');
 
@@ -241,6 +257,7 @@ var app = new Vue({
             this.activeRoomId = 0;
             this.alerts = [];
             this.user = {};
+            localStorage.removeItem(Fetcher.AUTH_FILED_NAME);
             return fetcher.post(createApiUrl('auth/logout'));
         },
         // ? Confirm Email
@@ -352,7 +369,9 @@ var app = new Vue({
                 this.socket.chat = null;
             }
 
-            this.socket.chat = io(createSocketIOUrl('chat'));
+            this.socket.chat = io(createSocketIOUrl('chat'), {
+                extraHeaders: Fetcher.constructAuthHeaders(),
+            });
 
             this.socket.chat.on(TO_CLIENT_EVENTS.CLIENT_CONNECTED, ({ rooms }) => {
                 this.rooms = rooms.map((room) => Object.assign(room, { lastMessage: room.messages[0] }));

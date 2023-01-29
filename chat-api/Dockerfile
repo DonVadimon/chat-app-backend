@@ -10,7 +10,7 @@ COPY . .
 
 # install psql
 RUN apt-get update
-RUN apt-get -y install postgresql-client
+RUN apt-get -y --allow-unauthenticated install postgresql-client
 
 # make wait-for-postgres.sh executable
 RUN chmod +x wait-for-postgres.sh

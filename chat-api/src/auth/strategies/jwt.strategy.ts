@@ -6,6 +6,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { ValidationPayload } from '@/auth/auth.types';
 import { UsersService } from '@/users/users.service';
+import { extractAuthTokenFromHeader } from '@/utils/auth-header';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,7 +16,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
-                (request: Request) => request?.cookies?.[this.configService.get('AUTH_COOKIE_NAME')],
+                (request: Request) =>
+                    extractAuthTokenFromHeader(request?.headers?.[this.configService.get('AUTH_HEADER_NAME')]),
             ]),
             secretOrKey: configService.get('JWT_SECRET'),
         });

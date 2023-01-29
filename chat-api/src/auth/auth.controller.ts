@@ -7,6 +7,7 @@ import { CookieOptions, Response } from 'express';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 import { ApiUserEntityResponse } from '@/users/users.swagger';
+import { constructAuthHeader } from '@/utils/auth-header';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -34,11 +35,7 @@ export class AuthController {
         const token = await this.authService.generateJwtToken(user);
 
         response
-            .cookie(
-                this.configService.get('AUTH_COOKIE_NAME'),
-                token,
-                this.getAuthCookieOptions(this.configService.get('EXPIRATION_TIME')),
-            )
+            .setHeader(this.configService.get('AUTH_HEADER_NAME'), constructAuthHeader(token))
             .send(classToPlain(user));
     }
 
@@ -49,11 +46,7 @@ export class AuthController {
         const user = await this.authService.registerUser(dto);
         const token = await this.authService.generateJwtToken(user);
         response
-            .cookie(
-                this.configService.get('AUTH_COOKIE_NAME'),
-                token,
-                this.getAuthCookieOptions(this.configService.get('EXPIRATION_TIME')),
-            )
+            .setHeader(this.configService.get('AUTH_HEADER_NAME'), constructAuthHeader(token))
             .send(classToPlain(new UserEntityResponseDto(user)));
     }
 
@@ -75,11 +68,14 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     logout(@Res() response: Response) {
-        response
-            .clearCookie(this.configService.get('AUTH_COOKIE_NAME'), this.getAuthCookieOptions(0))
-            .sendStatus(HttpStatus.OK);
+        response.setHeader(this.configService.get('AUTH_HEADER_NAME'), '').sendStatus(HttpStatus.OK);
     }
 
+    /**
+     * @deprecated
+     *
+     * was used with cookie based authorization
+     */
     private getAuthCookieOptions(maxAge: number): CookieOptions {
         const productionOptions: CookieOptions = {
             sameSite: 'none',

@@ -4,7 +4,7 @@ declare global {
             // ? AUTH
             JWT_SECRET: string;
             EXPIRATION_TIME: string;
-            AUTH_COOKIE_NAME: string;
+            AUTH_HEADER_NAME: string;
 
             // ? DATABASE
             DB_NAME: string;
@@ -32,6 +32,13 @@ declare global {
 
             // ? FILES
             UPLOADED_FILES_DESTINATION: string;
+
+            // ? FACE API
+            FACE_API_PORT: string;
+            FACE_API_FILE_UPLOAD_DIR: string;
+
+            // ? NGINX
+            NGINX_PORT: string;
         }
 
         interface ProcessEnv extends AppConfig {

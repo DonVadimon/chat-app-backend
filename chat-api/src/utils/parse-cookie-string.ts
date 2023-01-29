@@ -1,3 +1,8 @@
+/**
+ * @deprecated
+ *
+ * was used with cookie based authorization
+ */
 export const parseCookieString = (cookie: string | undefined): Record<string, string> =>
     (cookie ?? '').split('; ').reduce<Record<string, string>>((accum, cookiePair) => {
         const [key, value] = cookiePair.split('=');
