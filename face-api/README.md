@@ -6,7 +6,7 @@
 
 ## Requirements
 
-Download weights from <a this="https://drive.google.com/drive/folders/1FwiRTeY5_8x1smFizQ4h7PCTx8shcF_l?usp=sharing">this link</a> and place them in directory
+Download weights from <a href="https://drive.google.com/drive/folders/1FwiRTeY5_8x1smFizQ4h7PCTx8shcF_l?usp=sharing">this link</a> and place them in directory
 
 ```bash
 <root>/face-api/weights
