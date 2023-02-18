@@ -20,10 +20,7 @@ import { RequestWithUser } from './auth.types';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService,
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
-    ) {}
+    constructor(private readonly authService: AuthService, private readonly configService: ConfigService<AppConfig>) {}
 
     @ApiBody({ type: LoginDto })
     @ApiOkResponse({ type: ApiUserEntityResponse })

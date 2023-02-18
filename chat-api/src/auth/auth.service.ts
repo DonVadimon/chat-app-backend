@@ -16,7 +16,7 @@ import { ValidationPayload } from './auth.types';
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
+        private readonly configService: ConfigService<AppConfig>,
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly emailService: EmailService,

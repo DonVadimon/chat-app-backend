@@ -16,12 +16,12 @@ import { FaceApiCheckAnalyzeJobStatusResponse, FaceApiScheduleAnalyzeJobResponse
 export class FaceService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
+        private readonly configService: ConfigService<AppConfig>,
         private readonly httpService: HttpService,
     ) {}
 
     private get faceApiHost() {
-        return `http://face-api:${this.configService.get('FACE_API_PORT')}`;
+        return `http://${this.configService.get('FACE_API_UPSTREAM')}:${this.configService.get('FACE_API_PORT')}`;
     }
 
     async scheduleFaceAnalyze(file: Express.Multer.File): Promise<ScheduleAnalyzeJobResponse> {

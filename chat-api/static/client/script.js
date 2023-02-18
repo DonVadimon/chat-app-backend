@@ -154,7 +154,7 @@ var app = new Vue({
 
         newRoomName: '',
         newRoomDescription: '',
-        newRoomUsers: [1, 2],
+        newRoomUsers: [],
 
         messages: {},
         activeMessages: [],
@@ -164,8 +164,15 @@ var app = new Vue({
         alerts: [],
 
         isLoginModalOpened: false,
+        isRegisterModalOpened: false,
         username: '',
         password: '',
+        email: '',
+        name: '',
+
+        searchString: '',
+        searchResultData: [],
+        autocompleteOptions: [],
     },
     methods: {
         getChatContainer() {
@@ -198,9 +205,9 @@ var app = new Vue({
             this.activeMessages = this.messages[this.activeRoomId] ?? [];
         },
         createNewRoom() {
-            if (this.newRoomName && this.newRoomDescription) {
+            if (this.newRoomName && this.newRoomDescription && this.newRoomUsers?.length) {
                 this.socket.chat.emit(TO_SERVER_EVENTS.NEW_GROUP_ROOM_CREATE, {
-                    members: Array.from(new Set([...this.newRoomUsers, this.user.id])),
+                    members: Array.from(new Set([...this.newRoomUsers.map(({ id }) => id), this.user.id])),
                     name: this.newRoomName,
                     description: this.newRoomDescription,
                 });
@@ -226,6 +233,12 @@ var app = new Vue({
         closeLogin() {
             this.isLoginModalOpened = false;
         },
+        openRegister() {
+            this.isRegisterModalOpened = true;
+        },
+        closeRegister() {
+            this.isRegisterModalOpened = false;
+        },
         fetchUser(username, password) {
             return fetcher
                 .post(createApiUrl('auth/login'), {
@@ -247,6 +260,24 @@ var app = new Vue({
             this.activeRoomId = this.rooms[0]?.id;
 
             this.closeLogin();
+
+            this.initSockets();
+        },
+        async registerAndInit() {
+            this.user = await fetcher
+                .post(createApiUrl('auth/register'), {
+                    username: this.username,
+                    password: this.password,
+                    name: this.name,
+                    email: this.email,
+                })
+                .catch(console.error);
+
+            this.rooms = await fetcher.get(createApiUrl('chat/self-rooms'));
+
+            this.activeRoomId = this.rooms[0]?.id;
+
+            this.closeRegister();
 
             this.initSockets();
         },
@@ -400,6 +431,33 @@ var app = new Vue({
                 console.error(error);
                 this.handleErrorAlert(JSON.stringify(error));
             });
+        },
+        getAutocompleteData: debounce(async function (searchString) {
+            if (!searchString) {
+                return;
+            }
+
+            try {
+                const users = await fetcher.post(createApiUrl('search/users'), {
+                    searchString,
+                });
+
+                this.searchResultData = users.filter(({ id }) => !this.newRoomUsers.some((user) => user.id === id));
+                this.autocompleteOptions = this.searchResultData.map(({ username }) => username);
+            } catch (error) {
+                this.searchResultData = [];
+                this.autocompleteOptions = [];
+            }
+        }, 500),
+        onAutocompleteMemberSelect(option) {
+            const newRoomUser = this.searchResultData.find(({ username }) => username === option);
+            if (newRoomUser) {
+                this.newRoomUsers.push(newRoomUser);
+                this.searchString = '';
+            }
+        },
+        removeMemberFromNewRoom(user) {
+            this.newRoomUsers = this.newRoomUsers.filter(({ id }) => id !== user.id);
         },
     },
     computed: {

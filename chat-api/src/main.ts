@@ -2,14 +2,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 import { AppModule } from './app/app.module';
 import { EmptyResponseInterceptor } from './app/interceptors/empty-response.interceptor';
 import { CORS_ORIGINS } from './constants';
-
-dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -21,7 +18,7 @@ async function bootstrap() {
         credentials: true,
         origin: CORS_ORIGINS,
     });
-    app.setGlobalPrefix('chat-api');
+    app.setGlobalPrefix(process.env.CHAT_API_UPSTREAM);
 
     const swaggerConfig = new DocumentBuilder()
         .setTitle('Chat App Backend - SWAGGER')
@@ -30,8 +27,8 @@ async function bootstrap() {
         .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('swagger', app, document);
+    SwaggerModule.setup(`${process.env.CHAT_API_UPSTREAM}/swagger`, app, document);
 
-    await app.listen(process.env.PORT || process.env.APP_PORT);
+    await app.listen(process.env.CHAT_API_PORT);
 }
 bootstrap();

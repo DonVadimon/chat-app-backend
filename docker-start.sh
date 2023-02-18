@@ -1,8 +1,5 @@
 #!/bin/bash
 
-cp .env ./chat-api/.env
-cp .env ./face-api/.env
-
 cp ./chat-api/tsconfig.json ./tsconfig.json
 
 if [ "$1" = "prod" ]

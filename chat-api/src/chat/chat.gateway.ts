@@ -12,7 +12,6 @@ import { Server, Socket } from 'socket.io';
 
 import { AuthService } from '@/auth/auth.service';
 import { SocketWithUser } from '@/auth/auth.types';
-import { UnauthorizedWsException } from '@/auth/exceptions/unauthorized-ws.exception';
 import { WsJwtAuthGuard } from '@/auth/guards/ws-jwt-auth.guard';
 import { CORS_ORIGINS } from '@/constants';
 import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
@@ -64,9 +63,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             const userRooms = await this.chatService.getUserRooms(user.id);
             client.join(userRooms.map(({ id }) => this.chatUtilsService.createRoomWsId(id)));
             client.emit(ChatOutgoingEvents.CLIENT_CONNECTED, { rooms: userRooms });
+            this.logger.log(`New socket connection: user ${user.username}`);
         } catch (error) {
-            this.logger.error(error);
-            throw new UnauthorizedWsException();
+            client.disconnect();
+            this.logger.error('Connection error');
         }
     }
 

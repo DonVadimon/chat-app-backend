@@ -5,7 +5,7 @@ import { MailType } from '@/email/email.types';
 
 @Injectable()
 export class EmailUtilsService {
-    constructor(private readonly configService: ConfigService<NodeJS.ProcessEnv>) {}
+    constructor(private readonly configService: ConfigService<AppConfig>) {}
 
     private getConfirmEmailUrl(jwtToken: string, basePath?: string) {
         const url = new URL(basePath ?? this.configService.get('MAIL_CONFIRM_URL'));

@@ -10,10 +10,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class FilesService {
-    constructor(
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
-        private readonly prisma: PrismaService,
-    ) {}
+    constructor(private readonly configService: ConfigService<AppConfig>, private readonly prisma: PrismaService) {}
     private logger = new Logger(FilesService.name);
 
     deleteFile(filePath: string) {

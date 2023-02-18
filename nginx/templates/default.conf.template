@@ -1,0 +1,47 @@
+upstream ${CHAT_API_UPSTREAM} {
+    server ${CHAT_API_UPSTREAM}:${CHAT_API_PORT};
+}
+
+upstream ${FACE_API_UPSTREAM} {
+    server ${FACE_API_UPSTREAM}:${FACE_API_PORT};
+}
+
+upstream ${PGADMIN_UPSTREAM} {
+    server ${PGADMIN_UPSTREAM}:${PGADMIN_PORT};
+}
+
+server {
+    listen 80;
+    server_name chat-app;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-NginX-Proxy true;
+    proxy_ssl_session_reuse off;
+    proxy_cache_bypass $http_upgrade;
+    proxy_redirect off;
+
+    location /${CHAT_API_UPSTREAM} {
+        proxy_pass http://${CHAT_API_UPSTREAM};
+    }
+
+    location /${FACE_API_UPSTREAM} {
+        proxy_pass http://${FACE_API_UPSTREAM};
+    }
+
+    location /${PGADMIN_UPSTREAM} {
+        proxy_set_header X-Script-Name /pgadmin;
+        proxy_pass http://${PGADMIN_UPSTREAM};
+    }
+
+    location /${NGINX_STATIC_UPSTREAM} {
+        sendfile on;
+        autoindex on;
+        alias ${NGINX_STATIC_DIR};
+    }
+
+    location /socket.io {
+        proxy_pass http://${CHAT_API_UPSTREAM};
+    }
+}

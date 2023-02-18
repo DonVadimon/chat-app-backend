@@ -10,10 +10,7 @@ import { extractAuthTokenFromHeader } from '@/utils/auth-header';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly configService: ConfigService<NodeJS.ProcessEnv>,
-    ) {
+    constructor(private readonly usersService: UsersService, private readonly configService: ConfigService<AppConfig>) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
                 (request: Request) =>

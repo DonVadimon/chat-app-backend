@@ -1,7 +1,5 @@
 import os
 
-from dotenv import load_dotenv
-
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 TEMP_DATA_DIR_NAME = '.temp'
@@ -11,8 +9,6 @@ TEMP_DATA_DIR = os.path.join(ROOT_DIR, TEMP_DATA_DIR_NAME)
 WEIGHTS_DIR = os.path.join(ROOT_DIR, 'weights')
 
 # API
-
-load_dotenv()
 
 API_PORT = int(os.getenv('FACE_API_PORT', default=8080))
 DEBUG = bool(os.getenv('FACE_API_DEBUG', default=False))

@@ -19,7 +19,7 @@ export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Ty
     class Interceptor implements NestInterceptor {
         fileInterceptor: NestInterceptor;
 
-        constructor(configService: ConfigService) {
+        constructor(private readonly configService: ConfigService<AppConfig>) {
             const multerOptions: MulterOptions = {
                 storage: diskStorage({
                     destination: path.resolve(configService.get('UPLOADED_FILES_DESTINATION'), options.path ?? ''),

@@ -1,21 +1,16 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
 
 import { AppService } from './app.service';
 
 @ApiTags('app')
 @Controller()
 export class AppController {
-    constructor(private readonly appService: AppService) {}
+    constructor(private readonly appService: AppService, private readonly configService: ConfigService<AppConfig>) {}
 
-    @Get()
-    getClient(@Res() response: Response) {
-        response.redirect('/client');
-    }
-
-    @Get('hello')
-    getHello(): string {
-        return this.appService.getHello();
+    @Get('ping')
+    getPing(): string {
+        return this.appService.getPong();
     }
 }

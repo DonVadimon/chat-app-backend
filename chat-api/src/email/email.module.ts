@@ -20,7 +20,7 @@ import { EmailController } from './email.controller';
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
-            useFactory: async (configService: ConfigService<NodeJS.ProcessEnv>) => ({
+            useFactory: async (configService: ConfigService<AppConfig>) => ({
                 secret: configService.get('MAIL_JWT_SECRET'),
                 signOptions: {
                     expiresIn: configService.get('MAIL_EXPIRATION_TIME'),
@@ -30,7 +30,7 @@ import { EmailController } from './email.controller';
         MailerModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
-            useFactory: async (configService: ConfigService<NodeJS.ProcessEnv>) => {
+            useFactory: async (configService: ConfigService<AppConfig>) => {
                 const transport = configService.get('MAIL_TRANSPORT');
                 const mailFromName = configService.get('MAIL_FROM_NAME');
                 const mailFromAddress = transport.split(':')[1].split('//')[1];

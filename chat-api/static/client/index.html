@@ -22,6 +22,10 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css" />
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
 
+        <!-- lodash.debounce -->
+        <script src="https://cdn.jsdelivr.net/npm/lodash.debounce@4.0.8/index.min.js"></script>
+
+        <!-- socket.io -->
         <script src="/socket.io/socket.io.js"></script>
     </head>
     <body>
@@ -52,6 +56,10 @@
 
                         <b-navbar-item tag="div" v-if="!user.id">
                             <b-button label="Login" type="is-primary" size="is-medium" @click="openLogin()" />
+                        </b-navbar-item>
+
+                        <b-navbar-item tag="div" v-if="!user.id">
+                            <b-button label="Register" type="is-primary" size="is-medium" @click="openRegister()" />
                         </b-navbar-item>
 
                         <b-navbar-item tag="div" v-if="user.id">
@@ -106,6 +114,34 @@
                         >
                             Create New Room
                         </b-button>
+
+                        <b-field>
+                            <b-taglist>
+                                <b-tag
+                                    v-for="user in newRoomUsers"
+                                    :key="user.id"
+                                    closable
+                                    @close="removeMemberFromNewRoom(user)"
+                                >
+                                    {{ user.username }}
+                                </b-tag>
+                            </b-taglist>
+                        </b-field>
+
+                        <b-field label="Find members">
+                            <b-autocomplete
+                                v-model="searchString"
+                                :data="autocompleteOptions"
+                                placeholder="e.g. nagibator228"
+                                icon="magnify"
+                                clearable
+                                @typing="getAutocompleteData"
+                                @select="onAutocompleteMemberSelect"
+                            >
+                                <template #empty>No results found</template>
+                            </b-autocomplete>
+                        </b-field>
+                        <p>{{ searchString }}</p>
                     </form>
                     <div
                         class="box room-tab"
@@ -165,6 +201,58 @@
                                 label="Login"
                                 type="is-primary"
                                 @click.prevent="loginAndInit()"
+                            />
+                        </footer>
+                    </div>
+                </form>
+            </b-modal>
+
+            <b-modal
+                v-model="isRegisterModalOpened"
+                has-modal-card
+                trap-focus
+                :destroy-on-hide="false"
+                aria-role="dialog"
+                aria-label="Register Modal"
+                close-button-aria-label="Close"
+                aria-modal
+            >
+                <form action="">
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">Register</p>
+                        </header>
+                        <section class="modal-card-body">
+                            <b-field label="Username">
+                                <b-input type="username" v-model="username" placeholder="Your username" required>
+                                </b-input>
+                            </b-field>
+
+                            <b-field label="Name">
+                                <b-input type="text" v-model="name" placeholder="Your name" required> </b-input>
+                            </b-field>
+
+                            <b-field label="E-mail">
+                                <b-input type="email" v-model="email" placeholder="Your E-mail" required> </b-input>
+                            </b-field>
+
+                            <b-field label="Password">
+                                <b-input
+                                    type="password"
+                                    v-model="password"
+                                    password-reveal
+                                    placeholder="Your password"
+                                    required
+                                >
+                                </b-input>
+                            </b-field>
+                        </section>
+                        <footer class="modal-card-foot">
+                            <b-button
+                                native-type="submit"
+                                label="Register"
+                                type="is-primary"
+                                @click.prevent="registerAndInit()"
                             />
                         </footer>
                     </div>
