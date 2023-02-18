@@ -99,7 +99,6 @@ class Fetcher {
         })
             .then((response) => {
                 if (response.headers.has(Fetcher.AUTH_FILED_NAME)) {
-                    console.warn({ asd: response.headers.get(Fetcher.AUTH_FILED_NAME) });
                     localStorage.setItem(
                         Fetcher.AUTH_FILED_NAME,
                         response.headers.get(Fetcher.AUTH_FILED_NAME).replace('Bearer ', ''),
