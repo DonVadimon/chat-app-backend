@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+  face-api:
+    container_name: chat-app-face-api_api-only
+    build:
+      dockerfile: Dockerfile.api-only
+    command: 'python3 main.py --no-hair --no-face'

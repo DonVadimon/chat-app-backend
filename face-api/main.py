@@ -15,12 +15,29 @@ parser = argparse.ArgumentParser(description='Running options.')
 parser.add_argument('--no-hair', dest='NO_HAIR', action='store_true', default=False,
                     help='should analyzer process hair color (need 1.4GB of RAM)')
 
+parser.add_argument('--no-face', dest='NO_FACE', action='store_true', default=False,
+                    help='should mock analyzer with static response. Useful if you want to have api as lightweight as possible')
+
 args = parser.parse_args()
 NO_HAIR = args.NO_HAIR
+NO_FACE = args.NO_FACE
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def get_mock_face_info(file_path: str):
+    return FaceInfo(
+            skin_color='rgb(255, 224, 189)',
+            eye_color={
+                'left_color_name': 'Blue',
+                'right_color_name': 'Blue',
+            },
+            age='25, 32',
+            gender='Male',
+            hair_color='rgb(158, 128, 102)',
+        )
 
 
 def get_face_info(file_path: str):
