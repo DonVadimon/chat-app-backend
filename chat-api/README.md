@@ -10,4 +10,4 @@
  - Node Mailer
  - Prisma
  - Seeds based on faker.js
- - Bearer token based auth over passport.js
+ - Bearer token auth based auth over passport.js
