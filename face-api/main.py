@@ -7,8 +7,6 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, abort
 
-from core.face import FaceInfo
-from core.image import ImgProcessor
 from settings import DEBUG, API_PORT, FILE_UPLOAD_DIR, ALLOWED_EXTENSIONS
 
 parser = argparse.ArgumentParser(description='Running options.')
@@ -27,20 +25,24 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def get_mock_face_info(file_path: str):
-    return FaceInfo(
-            skin_color='rgb(255, 224, 189)',
-            eye_color={
-                'left_color_name': 'Blue',
-                'right_color_name': 'Blue',
-            },
-            age='25, 32',
-            gender='Male',
-            hair_color='rgb(158, 128, 102)',
-        )
+def get_mock_face_info():
+    from __mocks__.face import MockFaceInfo
+
+    return MockFaceInfo(
+        skin_color='rgb(255, 224, 189)',
+        eye_color={
+            'left_color_name': 'Blue',
+            'right_color_name': 'Blue',
+        },
+        age='25, 32',
+        gender='Male',
+        hair_color='rgb(158, 128, 102)',
+    )
 
 
-def get_face_info(file_path: str):
+def get_real_face_info(file_path: str):
+    from core.image import ImgProcessor
+
     processor = ImgProcessor(file_path, NO_HAIR=NO_HAIR)
 
     result = processor.face_processors[0].get_face_info()
@@ -50,11 +52,17 @@ def get_face_info(file_path: str):
     return result
 
 
+def get_face_info(file_path: str):
+    if NO_FACE:
+        return get_mock_face_info()
+    return get_real_face_info(file_path)
+
+
 app = Flask(__name__)
 api = Api(app)
 
 executor = ThreadPoolExecutor(max_workers=2)
-jobs: typing.Dict[str, Future[FaceInfo]] = {}
+jobs: typing.Dict[str, Future] = {}
 
 
 class FaceInfoResource(Resource):

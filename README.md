@@ -16,6 +16,16 @@
 └── docker-start.sh # script for docker-compose start
 ```
 
+### Run app
+
+Use command `sh ./docker-start.sh <mode>`
+
+Available running modes:
+
+ - `<no options>` - run app in development mode
+ - `prod` - run app in production mode
+ - `face-api-only` - run app but face-api response is mocked
+
 <p align="center">
 <img style="height:auto;border-radius: 50%;" alt="" width="260" height="260" class="avatar avatar-user width-full border color-bg-default" src="https://avatars.githubusercontent.com/u/67438684?v=4">
 </p>
