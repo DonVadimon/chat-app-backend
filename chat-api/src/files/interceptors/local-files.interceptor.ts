@@ -22,7 +22,7 @@ export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Ty
         constructor(private readonly configService: ConfigService<AppConfig>) {
             const multerOptions: MulterOptions = {
                 storage: diskStorage({
-                    destination: path.resolve(configService.get('UPLOADED_FILES_DESTINATION'), options.path ?? ''),
+                    destination: path.resolve(this.configService.get('UPLOADED_FILES_DESTINATION'), options.path ?? ''),
                     filename: (req, file, cb) =>
                         cb(null, `${file.fieldname}_${req.id}_${Date.now()}${path.extname(file.originalname)}`),
                 }),
