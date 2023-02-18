@@ -9,12 +9,15 @@ services:
     ports:
       - 5432:5432
 
-  app:
-    container_name: chat-app-app_dev
+  chat-api:
+    container_name: chat-api_dev
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PWD}@chat-app-db:5432/${DB_NAME}
     volumes:
-      - .:/usr/app
+      - ./chat-api:/usr/app
       - /usr/app/node_modules
     command: bash -c 'sh ./wait-for-postgres.sh npx prisma migrate deploy && npm run prisma:seed:force && npm run start:dev'
+  face-api:
+    environment:
+      - FACE_API_DEBUG=true

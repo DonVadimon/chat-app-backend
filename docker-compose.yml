@@ -4,32 +4,64 @@ services:
   db:
     image: postgres:13
     container_name: chat-app-db
-    restart: always
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PWD}
-  app:
+    restart: always
+  chat-api:
     build:
-      context: .
+      context: ./chat-api
       dockerfile: Dockerfile
+    env_file: ./.env
     expose:
-      - '${APP_PORT}'
+      - '${CHAT_API_PORT}'
     ports:
-      - '${APP_PORT}:${APP_PORT}'
+      - '${CHAT_API_PORT}:${CHAT_API_PORT}'
     depends_on:
       - db
+    restart: unless-stopped
+  face-api:
+    container_name: chat-app-face-api
+    build:
+      context: ./face-api
+      dockerfile: Dockerfile
+    env_file: ./.env
+    volumes:
+      - ./face-api:/usr/app
+    command: 'python3 main.py --no-hair'
+    # flask requires SIGINT to stop gracefully
+    # (default stop signal from Compose is SIGTERM)
+    stop_signal: SIGINT
+    ports:
+      - ${FACE_API_PORT}:${FACE_API_PORT}
+    depends_on:
+      - chat-api
     restart: unless-stopped
   pgadmin:
     container_name: chat-app-pgadmin4
     image: dpage/pgadmin4
     depends_on:
       - db
-    restart: always
     environment:
+      - PGADMIN_LISTEN_PORT=${PGADMIN_PORT}
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
-      - ${PGADMIN_PORT}:80
+      - ${PGADMIN_PORT}:${PGADMIN_PORT}
     volumes:
      - ${PGADMIN_DATA_PATH}:/var/lib/pgadmin
+    restart: always
+  nginx:
+    container_name: chat-app-nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    env_file: ./.env
+    ports:
+      - ${NGINX_PORT}:80
+    volumes:
+    #   - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/templates:/etc/nginx/templates
+      - ./chat-api/static:${NGINX_STATIC_DIR}
+    restart: always

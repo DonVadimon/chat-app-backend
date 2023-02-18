@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cp ./chat-api/tsconfig.json ./tsconfig.json
+
 if [ "$1" = "prod" ]
 then
     echo "\033[32;1;45m Docker starts for production \033[0m";
