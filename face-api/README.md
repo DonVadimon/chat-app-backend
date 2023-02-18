@@ -34,5 +34,6 @@ You can get info like this:
 ## Running params
 
 ```bash
---no-hair # run app without hair color analyxing module. This module uses heavy libraries that requires 1.2Gb of free RAM
+--no-hair # run app without hair color analyzing module. This module uses heavy libraries that requires 1.2Gb of free RAM
+--no-face # run app without analyzer - response is mocked
 ```
