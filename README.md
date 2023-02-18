@@ -12,6 +12,7 @@
 ├── nginx # nginx configuration
 ├── docker-compose.yml # shared docker-compose configuration
 ├── docker-compose.dev.yml # docker-compose configuration specific to devevlopment
+├── docker-compose.face.api-only.yml # docker-compose configuration specific to face-api with api-only option
 ├── docker-compose.prod.yml # docker-compose configuration specific to production
 └── docker-start.sh # script for docker-compose start
 ```
