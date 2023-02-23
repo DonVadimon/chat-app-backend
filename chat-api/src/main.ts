@@ -17,6 +17,8 @@ async function bootstrap() {
     app.enableCors({
         credentials: true,
         origin: CORS_ORIGINS,
+        allowedHeaders: [process.env.AUTH_HEADER_NAME, 'Content-Type'],
+        exposedHeaders: [process.env.AUTH_HEADER_NAME],
     });
     app.setGlobalPrefix(process.env.CHAT_API_UPSTREAM);
 
