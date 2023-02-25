@@ -6,7 +6,7 @@ import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 import { AppModule } from './app/app.module';
 import { EmptyResponseInterceptor } from './app/interceptors/empty-response.interceptor';
-import { CORS_ORIGINS } from './constants';
+import { ALLOWED_HEADERS, CORS_ORIGINS, EXPOSED_HEADERS } from './constants';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -17,8 +17,8 @@ async function bootstrap() {
     app.enableCors({
         credentials: true,
         origin: CORS_ORIGINS,
-        allowedHeaders: [process.env.AUTH_HEADER_NAME, 'Content-Type'],
-        exposedHeaders: [process.env.AUTH_HEADER_NAME],
+        allowedHeaders: ALLOWED_HEADERS,
+        exposedHeaders: EXPOSED_HEADERS,
     });
     app.setGlobalPrefix(process.env.CHAT_API_UPSTREAM);
 
