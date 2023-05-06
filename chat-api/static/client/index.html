@@ -106,6 +106,12 @@
                         <b-field label="New Room Description">
                             <b-input v-model="newRoomDescription" placeholder="New Room Description" />
                         </b-field>
+                        <b-field>
+                            <b-switch v-model="isPrivateRoom">
+                                <p v-if="isPrivateRoom">Private Room</p>
+                                <p v-if="!isPrivateRoom">Group Room</p>
+                            </b-switch>
+                        </b-field>
                         <b-button
                             :disabled="!user.id || !newRoomName || !newRoomDescription"
                             native-type="submit"
@@ -150,11 +156,17 @@
                         :key="room.id"
                         @click="handleRoomChange(room.id)"
                     >
+                        <div class="leave-room-button-container">
+                            <b-button type="is-danger is-light" icon-right="delete" @click="leaveRoom(room)" />
+                        </div>
                         <p v-if="!!room.name" class="title is-4">{{ room.name }}</p>
                         <p v-if="!!room.description" class="title is-5">{{ room.description }}</p>
                         <span v-if="!!room.lastMessage" class="title is-6">
                             {{ room.lastMessage.author?.username }} - {{ room.lastMessage?.content }}
                         </span>
+                        <hr />
+                        <span v-if="room.type === 'PRIVATE'" class="title is-6">🦾 Private</span>
+                        <span v-if="room.type === 'GROUP'" class="title is-6">🔊 Group</span>
                     </div>
                 </section>
                 <section class="alerts custom-scrollbar">

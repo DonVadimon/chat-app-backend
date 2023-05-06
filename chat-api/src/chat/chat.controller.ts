@@ -12,7 +12,11 @@ import { CreatePrivateChatRoomEventDto } from './dto/create-private-chat-room-ev
 import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
 import { ChatService } from './services/chat.service';
 import { ChatUtilsService } from './services/chat.utils.service';
-import { ApiChatRoomEntityDetailsResponse, ApiChatRoomEntityWithMembersResponse } from './chat.swagger';
+import {
+    ApiChatRoomEntityDetailsResponse,
+    ApiChatRoomEntityOwnerResponse,
+    ApiChatRoomEntityWithMembersResponse,
+} from './chat.swagger';
 
 @ApiTags('chat')
 @ApiExtraModels(
@@ -45,5 +49,13 @@ export class ChatController {
         } else {
             throw new HttpException("You must be a member of room to access it's content", HttpStatus.FORBIDDEN);
         }
+    }
+
+    @Get('room/:id/owner')
+    @ApiOkResponse({ type: ApiChatRoomEntityOwnerResponse })
+    async getRoomOwner(@Param('id') roomIdParam: string) {
+        const roomId = Number(roomIdParam);
+        const ownerPermission = await this.chatService.getRoomOwner(roomId);
+        return { ownerId: ownerPermission.id };
     }
 }

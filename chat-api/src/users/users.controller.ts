@@ -58,7 +58,7 @@ export class UsersController {
         return new UserEntityResponseDto(await this.usersService.getById(id));
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Patch('self-update')
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     async updateSelf(@Req() request: RequestWithUser, @Body() dto: UpdateUserDto) {
@@ -68,7 +68,7 @@ export class UsersController {
         return new UserEntityResponseDto(await this.usersService.updateUser(request.user.id, dto));
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Patch(':id')
     @UseGuards(RolesGuard(UserRoles.ADMIN))
     async updateUser(@Param('id') id: number, @Body() dto: UpdateUserDto) {

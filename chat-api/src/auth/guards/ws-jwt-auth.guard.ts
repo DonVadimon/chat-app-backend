@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 
 import { AuthService } from '@/auth/auth.service';
 import { SocketWithUser } from '@/auth/auth.types';
@@ -7,6 +7,8 @@ import { UnauthorizedWsException } from '@/auth/exceptions/unauthorized-ws.excep
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
     constructor(private readonly authService: AuthService) {}
+
+    private logger: Logger = new Logger(WsJwtAuthGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -20,6 +22,8 @@ export class WsJwtAuthGuard implements CanActivate {
         } catch (error) {
             const client = context.switchToWs().getClient<SocketWithUser>();
             client.data.user = undefined;
+
+            this.logger.error(error);
 
             throw new UnauthorizedWsException();
         }

@@ -95,7 +95,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @SubscribeMessage(ChatIncomingEvents.NEW_GROUP_ROOM_CREATE)
     async handleGroupRoomCreate(client: SocketWithUser, dto: CreateGroupChatRoomDto) {
         const room = await this.chatService.createGroupRoom(dto, client.data.user.id);
-        room.members = room.members.map((member) => new UserEntityResponseDto(member));
+        room.members = room.members.map((member) => new UserEntityResponseDto(member).cast());
         this.notifyAboutNewRoomCreate(client, room);
     }
 
@@ -103,7 +103,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @UseGuards(PrivateRoomDoesntExistYetGuard)
     async handlePrivateRoomCreate(client: SocketWithUser, dto: CreatePrivateChatRoomEventDto) {
         const room = await this.chatService.createPrivateRoom({ ...dto, firstMemberId: client.data.user.id });
-        room.members = room.members.map((member) => new UserEntityResponseDto(member));
+        room.members = room.members.map((member) => new UserEntityResponseDto(member).cast());
         this.notifyAboutNewRoomCreate(client, room);
     }
 
@@ -113,7 +113,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @UseGuards(PermittedToAddChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomJoin(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.addMemberToGroupRoom(dto);
-        room.members = room.members.map((member) => new UserEntityResponseDto(member));
+        room.members = room.members.map((member) => new UserEntityResponseDto(member).cast());
         client.join(this.chatUtilsService.createRoomWsId(room.id));
         client.emit(ChatOutgoingEvents.CLIENT_JOINED_ROOM, room);
         this.wss
@@ -125,12 +125,23 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @UseGuards(PermittedToDeleteChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.GROUP))
     async handleGroupRoomLeave(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
         const room = await this.chatService.removeMemberFromGroupRoom(dto);
-        room.members = room.members.map((member) => new UserEntityResponseDto(member));
-        client.leave(this.chatUtilsService.createRoomWsId(room.id));
+        room.members = room.members.map((member) => new UserEntityResponseDto(member).cast());
         this.wss.in(this.usersToSockets.get(dto.userId)).emit(ChatOutgoingEvents.CLIENT_LEAVED_ROOM, room);
+        this.wss.in(this.usersToSockets.get(dto.userId)).socketsLeave(this.chatUtilsService.createRoomWsId(room.id));
         this.wss
             .to(this.chatUtilsService.createRoomWsId(room.id))
             .emit(ChatOutgoingEvents.MEMBER_EXCLUDED_FROM_GROUP_ROOM, room);
+    }
+
+    @SubscribeMessage(ChatIncomingEvents.CLIENT_LEAVE_PRIVATE_ROOM)
+    @UseGuards(PermittedToDeleteChatMemberGuard, RoomTypeGuard(joinLeaveRoomIdExtractor, ChatRoomType.PRIVATE))
+    async handlePrivateRoomLeave(client: SocketWithUser, dto: JoinLeaveGroupChatRoomDto) {
+        const room = await this.chatService.deletePrivateRoom(dto);
+        room.members = room.members.map((member) => new UserEntityResponseDto(member).cast());
+        this.wss.to(this.chatUtilsService.createRoomWsId(room.id)).emit(ChatOutgoingEvents.CLIENT_LEAVED_ROOM, room);
+        this.wss
+            .to(this.chatUtilsService.createRoomWsId(room.id))
+            .socketsLeave(this.chatUtilsService.createRoomWsId(room.id));
     }
 
     // ? UPDATE CHAT ROOM INFO

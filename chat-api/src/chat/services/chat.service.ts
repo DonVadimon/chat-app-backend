@@ -50,31 +50,46 @@ export class ChatService {
         });
     }
 
-    getRoomWithMessages(roomId: number) {
-        return this.prisma.chatRoomEntity.findFirst({
-            where: {
-                id: roomId,
-            },
-            include: {
-                members: {
-                    select: {
-                        username: true,
-                        name: true,
-                    },
+    async getRoomWithMessages(roomId: number) {
+        const [room, { chatRoomEntityId: ownerId }] = await this.prisma.$transaction([
+            this.prisma.chatRoomEntity.findFirst({
+                where: {
+                    id: roomId,
                 },
-                messages: {
-                    include: {
-                        author: {
-                            select: {
-                                id: true,
-                                username: true,
-                                name: true,
+                include: {
+                    members: {
+                        select: {
+                            username: true,
+                            name: true,
+                            avatar: true,
+                            faceInfo: true,
+                        },
+                    },
+                    messages: {
+                        include: {
+                            author: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    name: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
+            }),
+            this.prisma.chatPermissionsEntity.findFirst({
+                where: {
+                    chatRoomEntityId: roomId,
+                    role: ChatRoles.OWNER,
+                },
+                select: {
+                    chatRoomEntityId: true,
+                },
+            }),
+        ]);
+
+        return Object.assign(room, { ownerId });
     }
 
     async createPrivateRoom(dto: CreatePrivateChatRoomDto) {
@@ -102,7 +117,12 @@ export class ChatService {
                 },
             },
             include: {
-                members: true,
+                members: {
+                    include: {
+                        avatar: true,
+                        faceInfo: true,
+                    },
+                },
             },
         });
     }
@@ -134,7 +154,12 @@ export class ChatService {
                 },
             },
             include: {
-                members: true,
+                members: {
+                    include: {
+                        avatar: true,
+                        faceInfo: true,
+                    },
+                },
             },
         });
     }
@@ -158,7 +183,12 @@ export class ChatService {
                 id: roomId,
             },
             include: {
-                members: true,
+                members: {
+                    include: {
+                        avatar: true,
+                        faceInfo: true,
+                    },
+                },
             },
         });
     }
@@ -188,7 +218,28 @@ export class ChatService {
                 id: roomId,
             },
             include: {
-                members: true,
+                members: {
+                    include: {
+                        avatar: true,
+                        faceInfo: true,
+                    },
+                },
+            },
+        });
+    }
+
+    deletePrivateRoom({ roomId }: JoinLeaveGroupChatRoomDto) {
+        return this.prisma.chatRoomEntity.delete({
+            where: {
+                id: roomId,
+            },
+            include: {
+                members: {
+                    include: {
+                        avatar: true,
+                        faceInfo: true,
+                    },
+                },
             },
         });
     }
@@ -226,6 +277,15 @@ export class ChatService {
                 id: roomId,
             },
             data,
+        });
+    }
+
+    getRoomOwner(roomId: number) {
+        return this.prisma.chatPermissionsEntity.findFirst({
+            where: {
+                chatRoomEntityId: roomId,
+                role: ChatRoles.OWNER,
+            },
         });
     }
 }

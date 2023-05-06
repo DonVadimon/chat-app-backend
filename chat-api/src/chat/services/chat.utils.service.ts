@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ChatRoomType } from '@prisma/client';
 
+import { CreatePrivateChatRoomDto } from '@/chat/dto/create-private-chat-room.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
@@ -41,6 +43,21 @@ export class ChatUtilsService {
             where: {
                 userEntityId: userId,
                 chatRoomEntityId: roomId,
+            },
+        });
+    }
+
+    isPrivateRoomAlreadyExist(dto: Pick<CreatePrivateChatRoomDto, 'firstMemberId' | 'secondMemberId'>) {
+        return this.prisma.chatRoomEntity.findFirst({
+            where: {
+                type: ChatRoomType.PRIVATE,
+                members: {
+                    every: {
+                        id: {
+                            in: [dto.firstMemberId, dto.secondMemberId],
+                        },
+                    },
+                },
             },
         });
     }

@@ -6,7 +6,7 @@ import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 import { UsersService } from '@/users/users.service';
-import { ApiUserEntityResponse } from '@/users/users.swagger';
+import { ApiUserEntityWithFaceInfoResponse } from '@/users/users.swagger';
 
 import { TransformedUploadedFile } from './decorators/transformed-uploaded-file.decorator';
 import { LocalFilesInterceptor } from './interceptors/local-files.interceptor';
@@ -16,7 +16,7 @@ import { LocalFilesInterceptor } from './interceptors/local-files.interceptor';
 export class FilesController {
     constructor(private readonly usersService: UsersService) {}
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Post('avatar')
     @UseInterceptors(
         LocalFilesInterceptor({
@@ -31,7 +31,7 @@ export class FilesController {
         );
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Delete('avatar')
     @UseGuards(JwtAuthGuard)
     async deleteAvatar(@Req() request: RequestWithUser) {

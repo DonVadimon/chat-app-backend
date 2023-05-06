@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, mixin, Type } from '@nestjs/common';
 import { ChatRoles } from '@prisma/client';
 
 import { SocketWithUser } from '@/auth/auth.types';
@@ -15,8 +15,11 @@ export const ChatPermissionsGuard = <T>({
     requiredRoles,
     roomIdExtractor,
 }: ChatPermissionsGuardPayload<T>): Type<CanActivate> => {
+    @Injectable()
     class ChatPermissionsGuardMixin {
         constructor(private readonly chatUtilsService: ChatUtilsService) {}
+
+        private logger: Logger = new Logger(ChatPermissionsGuardMixin.name);
 
         async canActivate(context: ExecutionContext) {
             try {
@@ -31,6 +34,8 @@ export const ChatPermissionsGuard = <T>({
 
                 return requiredRoles.some((role) => userPermissions.role === role);
             } catch (error) {
+                this.logger.error(error);
+
                 throw new NotPermittedWsException();
             }
         }

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ChatRoles } from '@prisma/client';
 
 import { SocketWithUser } from '@/auth/auth.types';
@@ -9,8 +9,11 @@ import { ChatUtilsService } from '@/chat/services/chat.utils.service';
 /**
  * You can exclude member from chat if you have OWNER permissions or if you want to exclude yourself
  */
+@Injectable()
 export class PermittedToDeleteChatMemberGuard implements CanActivate {
     constructor(private readonly chatUtilsService: ChatUtilsService) {}
+
+    private logger: Logger = new Logger(PermittedToDeleteChatMemberGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -24,6 +27,8 @@ export class PermittedToDeleteChatMemberGuard implements CanActivate {
 
             return userPermissions.role === ChatRoles.OWNER || dto.userId === client.data.user.id;
         } catch (error) {
+            this.logger.error(error);
+
             throw new NotPermittedWsException();
         }
     }

@@ -100,10 +100,11 @@ section.rooms {
 }
 
 .room-tab {
+    position: relative;
     display: flex;
     flex-direction: column;
     background: rgb(147, 208, 208);
-    padding: 12px;
+    padding: 20px calc(40px + 12px * 2) 20px 20px !important;
     border-radius: 16px;
     margin-bottom: 24px;
     cursor: pointer;
@@ -125,6 +126,12 @@ section.rooms {
 
 .room-tab .title {
     margin: 0 !important;
+}
+
+.leave-room-button-container {
+    position: absolute;
+    right: 12px;
+    top: 12px;
 }
 
 .new-room-form {

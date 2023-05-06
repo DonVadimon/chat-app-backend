@@ -1,4 +1,4 @@
-import { BadRequestException, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { UsersService } from '@/users/users.service';
@@ -6,6 +6,8 @@ import { UsersService } from '@/users/users.service';
 @Injectable()
 export class EmailConfirmedGuard implements CanActivate {
     constructor(private readonly usersService: UsersService) {}
+
+    private logger: Logger = new Logger(EmailConfirmedGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -17,6 +19,8 @@ export class EmailConfirmedGuard implements CanActivate {
 
             return true;
         } catch (error) {
+            this.logger.error(error);
+
             throw new BadRequestException(error.message);
         }
     }

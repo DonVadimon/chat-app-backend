@@ -14,6 +14,10 @@ const TO_SERVER_EVENTS = {
      */
     CLIENT_LEAVE_GROUP_ROOM: 'CHAT/CLIENT_LEAVE_GROUP_ROOM',
     /**
+     * Recieve request to delete PRIVATE chat room
+     */
+    CLIENT_LEAVE_PRIVATE_ROOM: 'CHAT/CLIENT_LEAVE_PRIVATE_ROOM',
+    /**
      * Recieve request to create new GROUP chat room
      */
     NEW_GROUP_ROOM_CREATE: 'CHAT/NEW_GROUP_ROOM_CREATE',
@@ -21,6 +25,10 @@ const TO_SERVER_EVENTS = {
      * Recieve request to create new PRIVATE chat room
      */
     NEW_PRIVATE_ROOM_CREATE: 'CHAT/NEW_PRIVATE_ROOM_CREATE',
+    /**
+     * Recieve request to update chat room info
+     */
+    UPDATE_ROOM_ENTITY: 'CHAT/UPDATE_ROOM_ENTITY',
 };
 
 const TO_CLIENT_EVENTS = {
@@ -54,10 +62,10 @@ const TO_CLIENT_EVENTS = {
     NEW_ROOM_CREATED: 'CHAT/NEW_ROOM_CREATED',
 };
 
-// const ChatRoomType = {
-//     PRIVATE: 'PRIVATE',
-//     GROUP: 'GROUP',
-// };
+const ChatRoomType = {
+    PRIVATE: 'PRIVATE',
+    GROUP: 'GROUP',
+};
 
 class UrlHelper {
     tokenNames = Object.freeze({
@@ -151,6 +159,7 @@ var app = new Vue({
         user: {},
         text: '',
 
+        isPrivateRoom: false,
         newRoomName: '',
         newRoomDescription: '',
         newRoomUsers: [],
@@ -203,7 +212,7 @@ var app = new Vue({
             this.activeRoomId = roomId;
             this.activeMessages = this.messages[this.activeRoomId] ?? [];
         },
-        createNewRoom() {
+        createNewGroupRoom() {
             if (this.newRoomName && this.newRoomDescription && this.newRoomUsers?.length) {
                 this.socket.chat.emit(TO_SERVER_EVENTS.NEW_GROUP_ROOM_CREATE, {
                     members: Array.from(new Set([...this.newRoomUsers.map(({ id }) => id), this.user.id])),
@@ -216,6 +225,25 @@ var app = new Vue({
                 this.handleErrorAlert('Validation Error');
             }
         },
+        createNewPrivateRoom() {
+            if (this.newRoomName && this.newRoomDescription && this.newRoomUsers?.length) {
+                this.socket.chat.emit(TO_SERVER_EVENTS.NEW_PRIVATE_ROOM_CREATE, {
+                    secondMemberId: this.newRoomUsers[0].id,
+                    name: this.newRoomName,
+                    description: this.newRoomDescription,
+                });
+                this.newRoomName = '';
+                this.newRoomDescription = '';
+            } else {
+                this.handleErrorAlert('Validation Error');
+            }
+        },
+        createNewRoom() {
+            if (this.isPrivateRoom) {
+                return this.createNewPrivateRoom();
+            }
+            return this.createNewGroupRoom();
+        },
         addOrUpdateRoom(room) {
             const existingRoomIndex = this.rooms.findIndex(({ id }) => id === room.id);
             if (existingRoomIndex >= 0) {
@@ -224,6 +252,24 @@ var app = new Vue({
                 this.handleInfoAlert(`You have joined room "${room.name ?? room.id}"`);
                 this.rooms.push(room);
             }
+        },
+        leaveRoom(room) {
+            this.$buefy.dialog.confirm({
+                message: 'Continue on this task?',
+                onConfirm: () => {
+                    const event =
+                        room.type === ChatRoomType.PRIVATE
+                            ? TO_SERVER_EVENTS.CLIENT_LEAVE_PRIVATE_ROOM
+                            : TO_SERVER_EVENTS.CLIENT_LEAVE_GROUP_ROOM;
+
+                    this.socket.chat.emit(event, {
+                        roomId: room.id,
+                        userId: this.user.id,
+                    });
+
+                    this.$buefy.toast.open(`You have leaved room ${room.name}`);
+                },
+            });
         },
         // ? Auth
         openLogin() {

@@ -1,7 +1,7 @@
 import { UserEntity, UserRoles } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
-export class UserEntityResponseDto implements UserEntity {
+export class UserEntityResponseDto<T> implements UserEntity {
     id: number;
     username: string;
     @Exclude({ toPlainOnly: true })
@@ -12,7 +12,11 @@ export class UserEntityResponseDto implements UserEntity {
     isEmailConfirmed: boolean;
     avatarFileEntityId: number | null;
 
-    constructor(partial: Partial<UserEntity>) {
+    constructor(partial: Partial<UserEntity & T>) {
         Object.assign(this, partial);
+    }
+
+    cast() {
+        return this as unknown as UserEntity & T;
     }
 }

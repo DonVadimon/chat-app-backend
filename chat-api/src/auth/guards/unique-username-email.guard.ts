@@ -1,4 +1,4 @@
-import { BadRequestException, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
 
 import { PrismaService } from '@/prisma/prisma.service';
@@ -8,6 +8,8 @@ import { UsersService } from '@/users/users.service';
 @Injectable()
 export class UniqueUsernameEmailGuard implements CanActivate {
     constructor(private readonly usersService: UsersService, private readonly prismaService: PrismaService) {}
+
+    private logger: Logger = new Logger(UniqueUsernameEmailGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -28,6 +30,8 @@ export class UniqueUsernameEmailGuard implements CanActivate {
 
             return true;
         } catch (error) {
+            this.logger.error(error);
+
             throw new BadRequestException(`Invalid username or email. ${error.message ?? ''}`);
         }
     }
