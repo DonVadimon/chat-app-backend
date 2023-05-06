@@ -1,12 +1,13 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { classToPlain } from 'class-transformer';
 import { CookieOptions, Response } from 'express';
 
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
-import { ApiUserEntityResponse } from '@/users/users.swagger';
+import { UsersService } from '@/users/users.service';
+import { ApiUserEntityResponse, ApiUserEntityWithFaceInfoResponse } from '@/users/users.swagger';
 import { constructAuthHeader } from '@/utils/auth-header';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -20,20 +21,25 @@ import { RequestWithUser } from './auth.types';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService, private readonly configService: ConfigService<AppConfig>) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly usersService: UsersService,
+        private readonly configService: ConfigService<AppConfig>,
+    ) {}
 
     @ApiBody({ type: LoginDto })
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @HttpCode(HttpStatus.OK)
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Req() request: RequestWithUser, @Res() response: Response) {
-        const user = new UserEntityResponseDto(request.user);
-        const token = await this.authService.generateJwtToken(user);
+        const user = await this.usersService.getByIdWithFaceInfo(request.user.id);
+        const responseUser = new UserEntityResponseDto(user);
+        const token = await this.authService.generateJwtToken(responseUser);
 
         response
             .setHeader(this.configService.get('AUTH_HEADER_NAME'), constructAuthHeader(token))
-            .send(classToPlain(user));
+            .send(classToPlain(responseUser));
     }
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
@@ -49,6 +55,7 @@ export class AuthController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @Get()
     authenticate(@Req() request: RequestWithUser) {
         return new UserEntityResponseDto(request.user);
@@ -56,6 +63,7 @@ export class AuthController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @Post('change-password')
     async changePassword(@Req() { user }: RequestWithUser, dto: ChangePasswordDto) {
         return new UserEntityResponseDto(await this.authService.changePassword(dto, user.email));
@@ -63,6 +71,7 @@ export class AuthController {
 
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @Post('logout')
     logout(@Res() response: Response) {
         response.setHeader(this.configService.get('AUTH_HEADER_NAME'), '').sendStatus(HttpStatus.OK);

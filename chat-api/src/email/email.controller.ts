@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -20,12 +20,14 @@ export class EmailController {
     constructor(private readonly emailService: EmailService) {}
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiBearerAuth()
     @Post('confirm')
     @UseGuards(JwtAuthGuard, EqualEmailsGuard)
     async confirmEmail(@Body() dto: ConfirmEmailDto) {
         return new UserEntityResponseDto(await this.emailService.confirmEmail(dto));
     }
 
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post('resend-confirmation')
     async resendConfirmationLink(@Req() request: RequestWithUser) {

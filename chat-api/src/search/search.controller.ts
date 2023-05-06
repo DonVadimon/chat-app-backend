@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -14,6 +14,7 @@ import {
 } from './search.swagger';
 
 @ApiTags('search')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('search')
 export class SearchController {

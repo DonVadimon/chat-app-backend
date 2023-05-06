@@ -91,7 +91,7 @@ class UrlHelper {
 const urlHelper = new UrlHelper();
 
 class Fetcher {
-    static AUTH_FILED_NAME = 'authentication';
+    static AUTH_FILED_NAME = 'Authorization';
     static constructAuthHeaders = () => ({
         [Fetcher.AUTH_FILED_NAME]: `Bearer ${localStorage.getItem(Fetcher.AUTH_FILED_NAME)}`,
     });
@@ -150,7 +150,6 @@ const fetcher = new Fetcher();
 const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/chat-api/${url}`;
 const createSocketIOUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/${url}`;
 
-Vue.component('alerts-component', VueSimpleNotify.VueSimpleNotify);
 Vue.use(Buefy);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 var app = new Vue({
@@ -169,10 +168,10 @@ var app = new Vue({
         rooms: [],
         activeRoomId: 0,
         socket: { chat: null },
-        alerts: [],
 
         isLoginModalOpened: false,
         isRegisterModalOpened: false,
+        isNewRoomModalOpened: false,
         username: '',
         password: '',
         email: '',
@@ -221,6 +220,7 @@ var app = new Vue({
                 });
                 this.newRoomName = '';
                 this.newRoomDescription = '';
+                this.closeNewRoomModal();
             } else {
                 this.handleErrorAlert('Validation Error');
             }
@@ -234,6 +234,7 @@ var app = new Vue({
                 });
                 this.newRoomName = '';
                 this.newRoomDescription = '';
+                this.closeNewRoomModal();
             } else {
                 this.handleErrorAlert('Validation Error');
             }
@@ -267,9 +268,15 @@ var app = new Vue({
                         userId: this.user.id,
                     });
 
-                    this.$buefy.toast.open(`You have leaved room ${room.name}`);
+                    this.$buefy.toast.open(`You have leaved room ${room.name || room.id}`);
                 },
             });
+        },
+        openNewRoomModal() {
+            this.isNewRoomModalOpened = true;
+        },
+        closeNewRoomModal() {
+            this.isNewRoomModalOpened = false;
         },
         // ? Auth
         openLogin() {
@@ -331,7 +338,6 @@ var app = new Vue({
             this.activeMessages = [];
             this.rooms = [];
             this.activeRoomId = 0;
-            this.alerts = [];
             this.user = {};
             localStorage.removeItem(Fetcher.AUTH_FILED_NAME);
             return fetcher.post(createApiUrl('auth/logout'));
@@ -423,20 +429,20 @@ var app = new Vue({
             });
         },
         // ? Notifications
-        handleAlertDismiss(index) {
-            this.alerts.splice(index, 1);
-        },
         handleInfoAlert(message) {
-            this.alerts.push({
-                type: 'Info',
-                color: '#2ecc71',
-                dismissable: true,
+            this.$buefy.toast.open({
+                duration: 5000,
                 message,
+                type: 'is-link',
+                pauseOnHover: true,
             });
         },
         handleErrorAlert(message) {
-            this.alerts.push({
+            this.$buefy.toast.open({
+                duration: 5000,
                 message,
+                type: 'is-danger',
+                pauseOnHover: true,
             });
         },
         // ? Init sockets
@@ -507,7 +513,11 @@ var app = new Vue({
     },
     computed: {
         activeRoom() {
-            return this.rooms.find((room) => room.id === Number(this.activeRoomId));
+            const room = this.rooms.find((room) => room.id === Number(this.activeRoomId));
+            if (room.type === ChatRoomType.PRIVATE) {
+                room.name = room.members.find(({ id }) => id !== this.user.id).username;
+            }
+            return room;
         },
     },
     watch: {

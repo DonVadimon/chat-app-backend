@@ -1,5 +1,5 @@
 import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiExtraModels, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExtraModels, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -10,6 +10,7 @@ import { CreateGroupChatRoomDto, CreateGroupChatRoomMemberDto } from './dto/crea
 import { CreatePrivateChatRoomDto } from './dto/create-private-chat-room.dto';
 import { CreatePrivateChatRoomEventDto } from './dto/create-private-chat-room-event.dto';
 import { JoinLeaveGroupChatRoomDto } from './dto/join-leave-group-chat-room.dto';
+import { UpdateChatRoomDto } from './dto/update-chat-room.dto';
 import { ChatService } from './services/chat.service';
 import { ChatUtilsService } from './services/chat.utils.service';
 import {
@@ -27,7 +28,9 @@ import {
     CreatePrivateChatRoomDto,
     CreatePrivateChatRoomEventDto,
     JoinLeaveGroupChatRoomDto,
+    UpdateChatRoomDto,
 )
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {

@@ -1,5 +1,5 @@
 import { Controller, Delete, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Express } from 'express';
 
 import { RequestWithUser } from '@/auth/auth.types';
@@ -12,6 +12,8 @@ import { TransformedUploadedFile } from './decorators/transformed-uploaded-file.
 import { LocalFilesInterceptor } from './interceptors/local-files.interceptor';
 
 @ApiTags('files')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('files')
 export class FilesController {
     constructor(private readonly usersService: UsersService) {}
@@ -24,7 +26,6 @@ export class FilesController {
             imageFilter: true,
         }),
     )
-    @UseGuards(JwtAuthGuard)
     async addOrUpdateAvatar(@Req() request: RequestWithUser, @TransformedUploadedFile() avatar: Express.Multer.File) {
         return new UserEntityResponseDto(
             await this.usersService.addOrUpdateAvatar({ avatar, userId: request.user.id }),
@@ -33,7 +34,6 @@ export class FilesController {
 
     @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Delete('avatar')
-    @UseGuards(JwtAuthGuard)
     async deleteAvatar(@Req() request: RequestWithUser) {
         return new UserEntityResponseDto(await this.usersService.deleteAvatar(request.user.id));
     }

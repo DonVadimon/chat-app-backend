@@ -51,7 +51,7 @@ export class ChatService {
     }
 
     async getRoomWithMessages(roomId: number) {
-        const [room, { chatRoomEntityId: ownerId }] = await this.prisma.$transaction([
+        const [room, { userEntityId: ownerId }] = await this.prisma.$transaction([
             this.prisma.chatRoomEntity.findFirst({
                 where: {
                     id: roomId,
@@ -84,7 +84,7 @@ export class ChatService {
                     role: ChatRoles.OWNER,
                 },
                 select: {
-                    chatRoomEntityId: true,
+                    userEntityId: true,
                 },
             }),
         ]);
@@ -145,7 +145,7 @@ export class ChatService {
                 name: dto.name,
                 description: dto.description,
                 members: {
-                    connect: dto.members.map((id) => ({ id })),
+                    connect: members.map(({ userEntityId }) => ({ id: userEntityId })),
                 },
                 chatPermissions: {
                     createMany: {

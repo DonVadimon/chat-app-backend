@@ -8,7 +8,7 @@ import { Socket } from 'socket.io';
 import { EmailService } from '@/email/services/email.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
-import { extractAuthTokenFromHeader } from '@/utils/auth-header';
+import { extractAuthHeader, extractAuthTokenFromHeader } from '@/utils/auth-header';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ValidationPayload } from './auth.types';
@@ -61,7 +61,7 @@ export class AuthService {
 
     async extractUserFromWsClient(client: Socket) {
         const jwtToken = extractAuthTokenFromHeader(
-            client.handshake.headers[this.configService.get('AUTH_HEADER_NAME')],
+            extractAuthHeader(client.handshake.headers, this.configService.get('AUTH_HEADER_NAME')),
         );
 
         const userInfo = await this.verifyJwtToken(jwtToken);

@@ -19,11 +19,15 @@ body {
     height: var(--nav-h);
 }
 
+.navbar img {
+    min-height: 3.8rem;
+}
+
 main {
     height: calc(100% - var(--nav-h));
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-areas: 'chat rooms alerts';
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'rooms chat';
 }
 
 main section {
@@ -38,6 +42,14 @@ section.chat {
     position: relative;
     display: flex;
     flex-direction: column;
+}
+
+.empty-chat-stub {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .chat-messages {
@@ -97,6 +109,7 @@ section.chat {
 
 section.rooms {
     grid-area: rooms;
+    padding-top: 20px;
 }
 
 .room-tab {
@@ -137,21 +150,7 @@ section.rooms {
 .new-room-form {
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    margin: 24px 0;
-}
-
-section.alerts {
-    grid-area: alerts;
-}
-
-.tab-row {
-    padding-top: 20px;
-}
-
-.tab-btn.active {
-    background: blue;
-    color: white;
+    gap: 12px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
