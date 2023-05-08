@@ -59,6 +59,7 @@ export class ChatService {
                 include: {
                     members: {
                         select: {
+                            id: true,
                             username: true,
                             name: true,
                             avatar: true,

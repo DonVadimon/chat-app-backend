@@ -23,6 +23,7 @@ server {
     proxy_redirect off;
 
     location /${CHAT_API_UPSTREAM} {
+        client_max_body_size 10M;
         proxy_pass http://${CHAT_API_UPSTREAM};
     }
 
