@@ -2,6 +2,9 @@
 
 cp ./chat-api/tsconfig.json ./tsconfig.json
 
+# Add permissions to pgadmin dir
+mkdir -p ./pgadmin && sudo chown -R 5050:5050 ./pgadmin/
+
 if [ "$1" = "prod" ]
 then
     echo "\033[32;1;45m Docker starts for production \033[0m";

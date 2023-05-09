@@ -513,7 +513,7 @@ var app = new Vue({
     },
     computed: {
         activeRoom() {
-            const room = this.rooms.find((room) => room.id === Number(this.activeRoomId));
+            const room = this.rooms.find((room) => room.id === Number(this.activeRoomId)) || {};
             if (room.type === ChatRoomType.PRIVATE) {
                 room.name = room.members.find(({ id }) => id !== this.user.id).username;
             }
