@@ -4,16 +4,19 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+        <link rel="apple-touch-icon" sizes="180x180" href="./assets/favicon/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/favicon-16x16.png" />
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#ffffff" />
+
         <title>Websockets Client</title>
 
         <link href="./styles.css" rel="stylesheet" />
 
         <!-- vue -->
         <script src="https://unpkg.com/vue@2"></script>
-
-        <!-- notify -->
-        <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
-        <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet" />
 
         <!-- buefy -->
         <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
@@ -33,11 +36,14 @@
             <template>
                 <b-navbar class="navbar">
                     <template #start>
-                        <b-navbar-item tag="div">
-                            <b-image rounded src="https://avatars.githubusercontent.com/u/67438684?v=4" />
+                        <b-navbar-item tag="a" href="./">
+                            <b-image src="./assets/test-client-logo.png" />
                         </b-navbar-item>
-                        <b-navbar-item tag="div">
-                            <h1 class="title">DonVadimon Chat</h1>
+                        <b-navbar-item tag="a" href="https://github.com/DonVadimon/chat-app-backend">
+                            <b-image src="./assets/github-logo.png" />
+                        </b-navbar-item>
+                        <b-navbar-item tag="div" v-if="!!user.id">
+                            <b-button label="New Room" type="is-primary" size="is-medium" @click="openNewRoomModal()" />
                         </b-navbar-item>
                     </template>
                     <template #end>
@@ -48,6 +54,10 @@
                                 size="is-medium"
                                 @click="resendConfirmation()"
                             />
+                        </b-navbar-item>
+
+                        <b-navbar-item tag="div" v-if="user.isEmailConfirmed">
+                            <p>{{ user.username }}</p>
                         </b-navbar-item>
 
                         <b-navbar-item tag="div" v-if="user.isEmailConfirmed">
@@ -70,11 +80,34 @@
             </template>
 
             <main>
+                <section class="rooms custom-scrollbar">
+                    <div
+                        class="box room-tab"
+                        :class="{ active: activeRoomId === room.id }"
+                        v-for="room in rooms"
+                        :key="room.id"
+                        @click="handleRoomChange(room.id)"
+                    >
+                        <div class="leave-room-button-container">
+                            <b-button type="is-danger is-light" icon-right="delete" @click="leaveRoom(room)" />
+                        </div>
+                        <p v-if="!!room.name" class="title is-4">{{ room.name }}</p>
+                        <p v-if="!!room.description" class="title is-5">{{ room.description }}</p>
+                        <span v-if="!!room.lastMessage" class="title is-6">
+                            {{ room.lastMessage.author?.username }} - {{ room.lastMessage?.content }}
+                        </span>
+                        <hr />
+                        <span v-if="room.type === 'PRIVATE'" class="title is-6">🦾 Private</span>
+                        <span v-if="room.type === 'GROUP'" class="title is-6">🔊 Group</span>
+                    </div>
+                </section>
+
                 <section class="chat custom-scrollbar">
                     <div class="chat-top">
-                        <h2 class="title">{{ user.username }}</h2>
+                        <h2 class="title">{{ activeRoom.name }}</h2>
                     </div>
-                    <div class="chat-messages">
+                    <p v-if="!activeMessages.length" class="empty-chat-stub">No messages yet...</p>
+                    <div v-if="!!activeMessages.length" class="chat-messages">
                         <div
                             v-for="msg in activeMessages"
                             :key="msg.id"
@@ -98,69 +131,77 @@
                         </b-button>
                     </form>
                 </section>
-                <section class="rooms custom-scrollbar">
-                    <form class="new-room-form">
-                        <b-field label="New Room Name">
-                            <b-input v-model="newRoomName" placeholder="New Room Name" />
-                        </b-field>
-                        <b-field label="New Room Description">
-                            <b-input v-model="newRoomDescription" placeholder="New Room Description" />
-                        </b-field>
-                        <b-button
-                            :disabled="!user.id || !newRoomName || !newRoomDescription"
-                            native-type="submit"
-                            type="is-primary is-light"
-                            @click.prevent="createNewRoom()"
-                        >
-                            Create New Room
-                        </b-button>
-
-                        <b-field>
-                            <b-taglist>
-                                <b-tag
-                                    v-for="user in newRoomUsers"
-                                    :key="user.id"
-                                    closable
-                                    @close="removeMemberFromNewRoom(user)"
-                                >
-                                    {{ user.username }}
-                                </b-tag>
-                            </b-taglist>
-                        </b-field>
-
-                        <b-field label="Find members">
-                            <b-autocomplete
-                                v-model="searchString"
-                                :data="autocompleteOptions"
-                                placeholder="e.g. nagibator228"
-                                icon="magnify"
-                                clearable
-                                @typing="getAutocompleteData"
-                                @select="onAutocompleteMemberSelect"
-                            >
-                                <template #empty>No results found</template>
-                            </b-autocomplete>
-                        </b-field>
-                        <p>{{ searchString }}</p>
-                    </form>
-                    <div
-                        class="box room-tab"
-                        :class="{ active: activeRoomId === room.id }"
-                        v-for="room in rooms"
-                        :key="room.id"
-                        @click="handleRoomChange(room.id)"
-                    >
-                        <p v-if="!!room.name" class="title is-4">{{ room.name }}</p>
-                        <p v-if="!!room.description" class="title is-5">{{ room.description }}</p>
-                        <span v-if="!!room.lastMessage" class="title is-6">
-                            {{ room.lastMessage.author?.username }} - {{ room.lastMessage?.content }}
-                        </span>
-                    </div>
-                </section>
-                <section class="alerts custom-scrollbar">
-                    <alerts-component :items="alerts" @onDismiss="handleAlertDismiss"></alerts-component>
-                </section>
             </main>
+
+            <b-modal
+                v-model="isNewRoomModalOpened"
+                has-modal-card
+                trap-focus
+                :destroy-on-hide="false"
+                aria-role="dialog"
+                aria-label="New Room Modal"
+                close-button-aria-label="Close"
+                aria-modal
+            >
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">New Room</p>
+                    </header>
+                    <section class="modal-card-body">
+                        <form class="new-room-form">
+                            <b-field label="New Room Name">
+                                <b-input v-model="newRoomName" placeholder="New Room Name" />
+                            </b-field>
+                            <b-field label="New Room Description">
+                                <b-input v-model="newRoomDescription" placeholder="New Room Description" />
+                            </b-field>
+                            <b-field>
+                                <b-switch v-model="isPrivateRoom">
+                                    <p v-if="isPrivateRoom">Private Room</p>
+                                    <p v-if="!isPrivateRoom">Group Room</p>
+                                </b-switch>
+                            </b-field>
+
+                            <b-field>
+                                <b-taglist>
+                                    <b-tag
+                                        v-for="user in newRoomUsers"
+                                        :key="user.id"
+                                        closable
+                                        @close="removeMemberFromNewRoom(user)"
+                                    >
+                                        {{ user.username }}
+                                    </b-tag>
+                                </b-taglist>
+                            </b-field>
+
+                            <b-field label="Find members">
+                                <b-autocomplete
+                                    v-model="searchString"
+                                    :data="autocompleteOptions"
+                                    placeholder="e.g. nagibator228"
+                                    icon="magnify"
+                                    clearable
+                                    @typing="getAutocompleteData"
+                                    @select="onAutocompleteMemberSelect"
+                                >
+                                    <template #empty>No results found</template>
+                                </b-autocomplete>
+                            </b-field>
+                            <p>{{ searchString }}</p>
+
+                            <b-button
+                                :disabled="!user.id || !newRoomName || !newRoomDescription"
+                                native-type="submit"
+                                type="is-primary is-light"
+                                @click.prevent="createNewRoom()"
+                            >
+                                Create New Room
+                            </b-button>
+                        </form>
+                    </section>
+                </div>
+            </b-modal>
 
             <b-modal
                 v-model="isLoginModalOpened"

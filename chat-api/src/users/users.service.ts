@@ -72,6 +72,10 @@ export class UsersService {
             where: {
                 id,
             },
+            include: {
+                avatar: true,
+                faceInfo: true,
+            },
         });
     }
 
@@ -121,6 +125,7 @@ export class UsersService {
             },
             include: {
                 avatar: true,
+                faceInfo: true,
             },
         });
     }
@@ -134,6 +139,10 @@ export class UsersService {
                 avatar: {
                     delete: true,
                 },
+            },
+            include: {
+                avatar: true,
+                faceInfo: true,
             },
         });
     }

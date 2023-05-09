@@ -14,6 +14,10 @@ export enum ChatIncomingEvents {
      */
     CLIENT_LEAVE_GROUP_ROOM = 'CHAT/CLIENT_LEAVE_GROUP_ROOM',
     /**
+     * Recieve request to delete PRIVATE chat room
+     */
+    CLIENT_LEAVE_PRIVATE_ROOM = 'CHAT/CLIENT_LEAVE_PRIVATE_ROOM',
+    /**
      * Recieve request to create new GROUP chat room
      */
     NEW_GROUP_ROOM_CREATE = 'CHAT/NEW_GROUP_ROOM_CREATE',

@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ChatMessageEntity, ChatRoomEntity, ChatRoomType, UserEntity } from '@prisma/client';
+import {
+    ChatMessageEntity,
+    ChatPermissionsEntity,
+    ChatRoles,
+    ChatRoomEntity,
+    ChatRoomType,
+    UserEntity,
+} from '@prisma/client';
 
 import { ApiUserEntityResponse } from '@/users/users.swagger';
 
@@ -72,7 +79,21 @@ export class ApiChatRoomEntityWithMembersResponse extends ApiChatRoomEntityRespo
     members: UserEntity[];
 }
 
+export class ApiChatRoomEntityDetailsChatPermission implements Pick<ChatPermissionsEntity, 'userEntityId' | 'role'> {
+    @ApiProperty()
+    userEntityId: number;
+    @ApiProperty({ enum: ChatRoles })
+    role: ChatRoles;
+}
+
 export class ApiChatRoomEntityDetailsResponse extends ApiChatRoomEntityWithMembersResponse implements ChatRoomDetails {
     @ApiProperty({ type: ApiChatMessageEntityDetailsResponse, isArray: true })
     messages: ChatMessageDetails[];
+    @ApiProperty()
+    ownerId: number;
+}
+
+export class ApiChatRoomEntityOwnerResponse {
+    @ApiProperty()
+    ownerId: number;
 }

@@ -78,7 +78,7 @@ enum ChatRoomType {
 model ChatMessageEntity {
     id               Int                      @id @default(autoincrement())
     content          String
-    room             ChatRoomEntity           @relation(fields: [chatRoomEntityId], references: [id])
+    room             ChatRoomEntity           @relation(fields: [chatRoomEntityId], references: [id], onDelete: Cascade)
     chatRoomEntityId Int
     author           UserEntity               @relation(fields: [authorEntityId], references: [id])
     authorEntityId   Int
@@ -96,7 +96,7 @@ model ChatMessageEntity {
 model ChatPermissionsEntity {
     id               Int            @id @default(autoincrement())
     user             UserEntity     @relation(fields: [userEntityId], references: [id])
-    chatRoom         ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id])
+    chatRoom         ChatRoomEntity @relation(fields: [chatRoomEntityId], references: [id], onDelete: Cascade)
     role             ChatRoles
     userEntityId     Int
     chatRoomEntityId Int

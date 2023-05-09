@@ -14,6 +14,10 @@ const TO_SERVER_EVENTS = {
      */
     CLIENT_LEAVE_GROUP_ROOM: 'CHAT/CLIENT_LEAVE_GROUP_ROOM',
     /**
+     * Recieve request to delete PRIVATE chat room
+     */
+    CLIENT_LEAVE_PRIVATE_ROOM: 'CHAT/CLIENT_LEAVE_PRIVATE_ROOM',
+    /**
      * Recieve request to create new GROUP chat room
      */
     NEW_GROUP_ROOM_CREATE: 'CHAT/NEW_GROUP_ROOM_CREATE',
@@ -21,6 +25,10 @@ const TO_SERVER_EVENTS = {
      * Recieve request to create new PRIVATE chat room
      */
     NEW_PRIVATE_ROOM_CREATE: 'CHAT/NEW_PRIVATE_ROOM_CREATE',
+    /**
+     * Recieve request to update chat room info
+     */
+    UPDATE_ROOM_ENTITY: 'CHAT/UPDATE_ROOM_ENTITY',
 };
 
 const TO_CLIENT_EVENTS = {
@@ -54,10 +62,10 @@ const TO_CLIENT_EVENTS = {
     NEW_ROOM_CREATED: 'CHAT/NEW_ROOM_CREATED',
 };
 
-// const ChatRoomType = {
-//     PRIVATE: 'PRIVATE',
-//     GROUP: 'GROUP',
-// };
+const ChatRoomType = {
+    PRIVATE: 'PRIVATE',
+    GROUP: 'GROUP',
+};
 
 class UrlHelper {
     tokenNames = Object.freeze({
@@ -83,7 +91,7 @@ class UrlHelper {
 const urlHelper = new UrlHelper();
 
 class Fetcher {
-    static AUTH_FILED_NAME = 'authentication';
+    static AUTH_FILED_NAME = 'Authorization';
     static constructAuthHeaders = () => ({
         [Fetcher.AUTH_FILED_NAME]: `Bearer ${localStorage.getItem(Fetcher.AUTH_FILED_NAME)}`,
     });
@@ -142,7 +150,6 @@ const fetcher = new Fetcher();
 const createApiUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/chat-api/${url}`;
 const createSocketIOUrl = (url) => `${window.location.protocol.replace(':', '')}://${window.location.host}/${url}`;
 
-Vue.component('alerts-component', VueSimpleNotify.VueSimpleNotify);
 Vue.use(Buefy);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 var app = new Vue({
@@ -151,6 +158,7 @@ var app = new Vue({
         user: {},
         text: '',
 
+        isPrivateRoom: false,
         newRoomName: '',
         newRoomDescription: '',
         newRoomUsers: [],
@@ -160,10 +168,10 @@ var app = new Vue({
         rooms: [],
         activeRoomId: 0,
         socket: { chat: null },
-        alerts: [],
 
         isLoginModalOpened: false,
         isRegisterModalOpened: false,
+        isNewRoomModalOpened: false,
         username: '',
         password: '',
         email: '',
@@ -203,7 +211,7 @@ var app = new Vue({
             this.activeRoomId = roomId;
             this.activeMessages = this.messages[this.activeRoomId] ?? [];
         },
-        createNewRoom() {
+        createNewGroupRoom() {
             if (this.newRoomName && this.newRoomDescription && this.newRoomUsers?.length) {
                 this.socket.chat.emit(TO_SERVER_EVENTS.NEW_GROUP_ROOM_CREATE, {
                     members: Array.from(new Set([...this.newRoomUsers.map(({ id }) => id), this.user.id])),
@@ -212,9 +220,30 @@ var app = new Vue({
                 });
                 this.newRoomName = '';
                 this.newRoomDescription = '';
+                this.closeNewRoomModal();
             } else {
                 this.handleErrorAlert('Validation Error');
             }
+        },
+        createNewPrivateRoom() {
+            if (this.newRoomName && this.newRoomDescription && this.newRoomUsers?.length) {
+                this.socket.chat.emit(TO_SERVER_EVENTS.NEW_PRIVATE_ROOM_CREATE, {
+                    secondMemberId: this.newRoomUsers[0].id,
+                    name: this.newRoomName,
+                    description: this.newRoomDescription,
+                });
+                this.newRoomName = '';
+                this.newRoomDescription = '';
+                this.closeNewRoomModal();
+            } else {
+                this.handleErrorAlert('Validation Error');
+            }
+        },
+        createNewRoom() {
+            if (this.isPrivateRoom) {
+                return this.createNewPrivateRoom();
+            }
+            return this.createNewGroupRoom();
         },
         addOrUpdateRoom(room) {
             const existingRoomIndex = this.rooms.findIndex(({ id }) => id === room.id);
@@ -224,6 +253,30 @@ var app = new Vue({
                 this.handleInfoAlert(`You have joined room "${room.name ?? room.id}"`);
                 this.rooms.push(room);
             }
+        },
+        leaveRoom(room) {
+            this.$buefy.dialog.confirm({
+                message: 'Continue on this task?',
+                onConfirm: () => {
+                    const event =
+                        room.type === ChatRoomType.PRIVATE
+                            ? TO_SERVER_EVENTS.CLIENT_LEAVE_PRIVATE_ROOM
+                            : TO_SERVER_EVENTS.CLIENT_LEAVE_GROUP_ROOM;
+
+                    this.socket.chat.emit(event, {
+                        roomId: room.id,
+                        userId: this.user.id,
+                    });
+
+                    this.$buefy.toast.open(`You have leaved room ${room.name || room.id}`);
+                },
+            });
+        },
+        openNewRoomModal() {
+            this.isNewRoomModalOpened = true;
+        },
+        closeNewRoomModal() {
+            this.isNewRoomModalOpened = false;
         },
         // ? Auth
         openLogin() {
@@ -285,7 +338,6 @@ var app = new Vue({
             this.activeMessages = [];
             this.rooms = [];
             this.activeRoomId = 0;
-            this.alerts = [];
             this.user = {};
             localStorage.removeItem(Fetcher.AUTH_FILED_NAME);
             return fetcher.post(createApiUrl('auth/logout'));
@@ -377,20 +429,20 @@ var app = new Vue({
             });
         },
         // ? Notifications
-        handleAlertDismiss(index) {
-            this.alerts.splice(index, 1);
-        },
         handleInfoAlert(message) {
-            this.alerts.push({
-                type: 'Info',
-                color: '#2ecc71',
-                dismissable: true,
+            this.$buefy.toast.open({
+                duration: 5000,
                 message,
+                type: 'is-link',
+                pauseOnHover: true,
             });
         },
         handleErrorAlert(message) {
-            this.alerts.push({
+            this.$buefy.toast.open({
+                duration: 5000,
                 message,
+                type: 'is-danger',
+                pauseOnHover: true,
             });
         },
         // ? Init sockets
@@ -461,7 +513,11 @@ var app = new Vue({
     },
     computed: {
         activeRoom() {
-            return this.rooms.find((room) => room.id === Number(this.activeRoomId));
+            const room = this.rooms.find((room) => room.id === Number(this.activeRoomId)) || {};
+            if (room.type === ChatRoomType.PRIVATE) {
+                room.name = room.members.find(({ id }) => id !== this.user.id).username;
+            }
+            return room;
         },
     },
     watch: {

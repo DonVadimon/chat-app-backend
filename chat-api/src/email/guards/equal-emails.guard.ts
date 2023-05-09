@@ -4,6 +4,7 @@ import {
     ExecutionContext,
     HttpException,
     Injectable,
+    Logger,
     UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -16,6 +17,8 @@ import { UsersService } from '@/users/users.service';
 @Injectable()
 export class EqualEmailsGuard implements CanActivate {
     constructor(private readonly usersService: UsersService, private readonly emailService: EmailService) {}
+
+    private logger: Logger = new Logger(EqualEmailsGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -33,6 +36,8 @@ export class EqualEmailsGuard implements CanActivate {
 
             return true;
         } catch (error) {
+            this.logger.error(error);
+
             if (error instanceof HttpException) {
                 throw error;
             } else {

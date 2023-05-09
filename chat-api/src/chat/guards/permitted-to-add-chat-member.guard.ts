@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ChatRoles } from '@prisma/client';
 
 import { SocketWithUser } from '@/auth/auth.types';
@@ -9,8 +9,11 @@ import { ChatUtilsService } from '@/chat/services/chat.utils.service';
 /**
  * You can add new member to room only if you have OWNER permissions
  */
+@Injectable()
 export class PermittedToAddChatMemberGuard implements CanActivate {
     constructor(private readonly chatUtilsService: ChatUtilsService) {}
+
+    private logger: Logger = new Logger(PermittedToAddChatMemberGuard.name);
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
@@ -24,6 +27,8 @@ export class PermittedToAddChatMemberGuard implements CanActivate {
 
             return userPermissions.role === ChatRoles.OWNER;
         } catch (error) {
+            this.logger.error(error);
+
             throw new NotPermittedWsException();
         }
     }

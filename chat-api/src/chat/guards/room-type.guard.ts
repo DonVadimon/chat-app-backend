@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, mixin, Type } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, mixin, Type } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { ChatRoomType } from '@prisma/client';
 
@@ -9,8 +9,11 @@ export const RoomTypeGuard = <T>(
     roomIdExtractor: RoomIdExtractor<T>,
     ...allowedRoomTypes: ChatRoomType[]
 ): Type<CanActivate> => {
+    @Injectable()
     class RoomTypeGuardMixin {
         constructor(private readonly chatUtilsService: ChatUtilsService) {}
+
+        private logger: Logger = new Logger(RoomTypeGuardMixin.name);
 
         async canActivate(context: ExecutionContext): Promise<boolean> {
             try {
@@ -22,6 +25,8 @@ export const RoomTypeGuard = <T>(
 
                 return allowedRoomTypes.includes(room.type);
             } catch (error) {
+                this.logger.error(error);
+
                 throw new WsException(`Target room has invalid type. Allowed only ${allowedRoomTypes.join(', ')}`);
             }
         }

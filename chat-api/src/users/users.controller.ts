@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserRoles } from '@prisma/client';
 
 import { RequestWithUser } from '@/auth/auth.types';
@@ -30,6 +30,7 @@ export class UsersController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse, isArray: true })
     @Get()
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN))
     async getAllUsers() {
         const users = await this.usersService.getAllUsers();
@@ -39,6 +40,7 @@ export class UsersController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @Get('self')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     async getSelf(@Req() request: RequestWithUser) {
         return new UserEntityResponseDto(await this.usersService.getById(request.user.id));
@@ -46,6 +48,7 @@ export class UsersController {
 
     @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Get('self-face-info')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     async getSelfFaceInfo(@Req() request: RequestWithUser) {
         return new UserEntityResponseDto(await this.usersService.getByIdWithFaceInfo(request.user.id));
@@ -53,13 +56,15 @@ export class UsersController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @Get(':id')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN))
     async getById(@Param('id') id: number) {
         return new UserEntityResponseDto(await this.usersService.getById(id));
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Patch('self-update')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN, UserRoles.REGULAR))
     async updateSelf(@Req() request: RequestWithUser, @Body() dto: UpdateUserDto) {
         // ? dont allow to change self roles
@@ -68,8 +73,9 @@ export class UsersController {
         return new UserEntityResponseDto(await this.usersService.updateUser(request.user.id, dto));
     }
 
-    @ApiOkResponse({ type: ApiUserEntityResponse })
+    @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
     @Patch(':id')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN))
     async updateUser(@Param('id') id: number, @Body() dto: UpdateUserDto) {
         return new UserEntityResponseDto(await this.usersService.updateUser(id, dto));
@@ -77,6 +83,7 @@ export class UsersController {
 
     @ApiOkResponse({ type: ApiUserEntityResponse })
     @Delete(':id')
+    @ApiBearerAuth()
     @UseGuards(RolesGuard(UserRoles.ADMIN))
     async deleteUser(@Param('id') id: number) {
         return new UserEntityResponseDto(await this.usersService.deleteUser({ id }));
