@@ -1,5 +1,5 @@
 import { Controller, Delete, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Express } from 'express';
 
 import { RequestWithUser } from '@/auth/auth.types';
@@ -8,6 +8,7 @@ import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 import { UsersService } from '@/users/users.service';
 import { ApiUserEntityWithFaceInfoResponse } from '@/users/users.swagger';
 
+import { ApiFile } from './decorators/api-file.decorator';
 import { TransformedUploadedFile } from './decorators/transformed-uploaded-file.decorator';
 import { LocalFilesInterceptor } from './interceptors/local-files.interceptor';
 
@@ -19,6 +20,8 @@ export class FilesController {
     constructor(private readonly usersService: UsersService) {}
 
     @ApiOkResponse({ type: ApiUserEntityWithFaceInfoResponse })
+    @ApiConsumes('multipart/form-data')
+    @ApiFile('avatar')
     @Post('avatar')
     @UseInterceptors(
         LocalFilesInterceptor({

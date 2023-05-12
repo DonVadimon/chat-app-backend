@@ -1,9 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequestWithUser } from '@/auth/auth.types';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { ApiFile } from '@/files/decorators/api-file.decorator';
 
 import { UpdateFaceInfoDto } from './dto/update-face-info.dto';
 import { FaceService } from './face.service';
@@ -21,6 +22,8 @@ export class FaceController {
     constructor(private readonly faceService: FaceService) {}
 
     @ApiOkResponse({ type: ApiScheduleAnalyzeJobResponse })
+    @ApiConsumes('multipart/form-data')
+    @ApiFile('file')
     @UseInterceptors(FileInterceptor('file'))
     @Post('schedule')
     async scheduleFaceAnalyze(@Req() request: RequestWithUser) {
