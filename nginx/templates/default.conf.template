@@ -24,6 +24,11 @@ server {
 
     location /${CHAT_API_UPSTREAM} {
         client_max_body_size 10M;
+
+        set $cors_debug "true";
+        set $cors_allow_credentials "true";
+        include /etc/nginx/cors.conf/cors.conf;
+
         proxy_pass http://${CHAT_API_UPSTREAM};
     }
 
@@ -39,6 +44,10 @@ server {
     location /${NGINX_STATIC_UPSTREAM} {
         sendfile on;
         autoindex on;
+
+        set $cors_debug "true";
+        include /etc/nginx/cors.conf/cors.conf;
+
         alias ${NGINX_STATIC_DIR};
     }
 
@@ -47,6 +56,11 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+
+        set $cors_debug "true";
+        set $cors_allow_credentials "true";
+        include /etc/nginx/cors.conf/cors.conf;
+
         proxy_pass http://${CHAT_API_UPSTREAM};
     }
 }

@@ -3,7 +3,7 @@
 cp ./chat-api/tsconfig.json ./tsconfig.json
 
 # Add permissions to pgadmin dir
-mkdir -p ./pgadmin && sudo chown -R 5050:5050 ./pgadmin/
+mkdir -p ./pgadmin && sudo chmod -R 0777 ./pgadmin
 
 if [ "$1" = "prod" ]
 then

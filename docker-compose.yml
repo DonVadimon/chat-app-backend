@@ -61,7 +61,8 @@ services:
     ports:
       - ${NGINX_PORT}:80
     volumes:
-    #   - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/templates:/etc/nginx/templates
+      - ./nginx/cors.conf:/etc/nginx/cors.conf
       - ./chat-api/static:${NGINX_STATIC_DIR}
     restart: always
