@@ -6,7 +6,6 @@ import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 import { AppModule } from './app/app.module';
 import { EmptyResponseInterceptor } from './app/interceptors/empty-response.interceptor';
-import { ALLOWED_HEADERS, CORS_ORIGINS, EXPOSED_HEADERS } from './constants';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -14,12 +13,6 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     app.useGlobalInterceptors(new LoggerErrorInterceptor(), new EmptyResponseInterceptor());
     app.use(cookieParser());
-    app.enableCors({
-        credentials: true,
-        origin: CORS_ORIGINS,
-        allowedHeaders: ALLOWED_HEADERS,
-        exposedHeaders: EXPOSED_HEADERS,
-    });
     app.setGlobalPrefix(process.env.CHAT_API_UPSTREAM);
 
     const swaggerConfig = new DocumentBuilder()

@@ -13,7 +13,6 @@ import { Server, Socket } from 'socket.io';
 import { AuthService } from '@/auth/auth.service';
 import { SocketWithUser } from '@/auth/auth.types';
 import { WsJwtAuthGuard } from '@/auth/guards/ws-jwt-auth.guard';
-import { ALLOWED_HEADERS, CORS_ORIGINS, EXPOSED_HEADERS } from '@/constants';
 import { UserEntityResponseDto } from '@/users/dto/user-entity-response.dto';
 
 import { CreateChatMessageEventDto } from './dto/create-chat-message-event.dto';
@@ -33,12 +32,6 @@ import { joinLeaveRoomIdExtractor } from './chat.utils';
 
 @WebSocketGateway({
     namespace: '/chat',
-    cors: {
-        origin: CORS_ORIGINS,
-        credentials: true,
-        allowedHeaders: ALLOWED_HEADERS,
-        exposedHeaders: EXPOSED_HEADERS,
-    },
 })
 @UseGuards(WsJwtAuthGuard)
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
