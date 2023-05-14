@@ -33,9 +33,9 @@ export class EmailUtilsService {
     getExtraDevLinks(type: MailType, jwtToken: string) {
         return {
             frontLocalUrl: this.constructMailUrl(type, jwtToken, 'http://localhost:8100'),
-            frontProdUrl: this.constructMailUrl(type, jwtToken, 'https://chat-app-frontend-two.vercel.app'),
-            backLocalUrl: this.constructMailUrl(type, jwtToken, 'http://localhost:3003'),
-            backProdUrl: this.constructMailUrl(type, jwtToken, 'https://don-vadimon.online'),
+            frontProdUrl: this.constructMailUrl(type, jwtToken, 'https://chat-app-frontend-seven.vercel.app'),
+            backLocalUrl: this.constructMailUrl(type, jwtToken, 'http://localhost:8000/static/client'),
+            backProdUrl: this.constructMailUrl(type, jwtToken, 'https://vds.don-vadimon.online/static/client'),
         };
     }
 }
