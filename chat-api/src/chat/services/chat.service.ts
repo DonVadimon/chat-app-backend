@@ -42,6 +42,8 @@ export class ChatService {
                         id: true,
                         username: true,
                         name: true,
+                        avatar: true,
+                        faceInfo: true,
                     },
                     // ? limit from above
                     take: 2,
