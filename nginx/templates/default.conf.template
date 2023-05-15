@@ -14,52 +14,54 @@ server {
     listen 80;
     server_name chat-app;
 
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-NginX-Proxy true;
     proxy_ssl_session_reuse off;
-    proxy_cache_bypass $http_upgrade;
-    proxy_redirect off;
 
     location /${CHAT_API_UPSTREAM} {
-        client_max_body_size 10M;
+        include /etc/nginx/proxy.conf/proxy.conf;
 
         set $cors_debug "true";
         set $cors_allow_credentials "true";
         include /etc/nginx/cors.conf/cors.conf;
+
+        client_max_body_size 10M;
 
         proxy_pass http://${CHAT_API_UPSTREAM};
     }
 
     location /${FACE_API_UPSTREAM} {
+        include /etc/nginx/proxy.conf/proxy.conf;
         proxy_pass http://${FACE_API_UPSTREAM};
     }
 
     location /${PGADMIN_UPSTREAM} {
+        include /etc/nginx/proxy.conf/proxy.conf;
         proxy_set_header X-Script-Name /pgadmin;
         proxy_pass http://${PGADMIN_UPSTREAM};
     }
 
     location /${NGINX_STATIC_UPSTREAM} {
-        sendfile on;
-        autoindex on;
+        include /etc/nginx/proxy.conf/proxy.conf;
 
         set $cors_debug "true";
         include /etc/nginx/cors.conf/cors.conf;
+
+        sendfile on;
+        autoindex on;
 
         alias ${NGINX_STATIC_DIR};
     }
 
     location /socket.io {
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
+        include /etc/nginx/proxy.conf/proxy.conf;
 
         set $cors_debug "true";
         set $cors_allow_credentials "true";
         include /etc/nginx/cors.conf/cors.conf;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
 
         proxy_pass http://${CHAT_API_UPSTREAM};
     }
