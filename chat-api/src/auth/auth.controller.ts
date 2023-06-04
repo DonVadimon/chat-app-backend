@@ -10,7 +10,6 @@ import { UsersService } from '@/users/users.service';
 import { ApiUserEntityResponse, ApiUserEntityWithFaceInfoResponse } from '@/users/users.swagger';
 import { constructAuthHeader } from '@/utils/auth-header';
 
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -59,14 +58,6 @@ export class AuthController {
     @Get()
     authenticate(@Req() request: RequestWithUser) {
         return new UserEntityResponseDto(request.user);
-    }
-
-    @ApiOkResponse({ type: ApiUserEntityResponse })
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @Post('change-password')
-    async changePassword(@Req() { user }: RequestWithUser, dto: ChangePasswordDto) {
-        return new UserEntityResponseDto(await this.authService.changePassword(dto, user.email));
     }
 
     @HttpCode(HttpStatus.OK)

@@ -10,7 +10,6 @@ import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
 import { extractAuthHeader, extractAuthTokenFromHeader } from '@/utils/auth-header';
 
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { ValidationPayload } from './auth.types';
 
 @Injectable()
@@ -44,10 +43,6 @@ export class AuthService {
         await this.emailService.sendConfirmEmailMessage(user);
 
         return user;
-    }
-
-    changePassword(dto: ChangePasswordDto, userEmail: string) {
-        return this.usersService.changePassword(userEmail, dto.newPassword);
     }
 
     generateJwtToken({ id, username }: ValidationPayload, options?: JwtSignOptions) {
